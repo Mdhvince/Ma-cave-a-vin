@@ -55,13 +55,11 @@ class AppViewModel : ViewModel() {
     fun setConfig(rows: Int, cols: Int) = Repository.setConfig(rows, cols)
 
     fun setName(name: String) = Repository.setName(name)
-    fun addCompartment() = Repository.addCompartment()
 
     fun addWine(wine: Wine) = Repository.addWine(wine)
     fun updateWine(w: Wine) = Repository.updateWine(w)
     fun deleteWine(id: String) = Repository.deleteWine(id)
     fun moveWine(id: String, row: Int, col: Int) = Repository.moveWine(id, row, col)
-    fun moveCompartment(srcRow: Int, srcCol: Int, dstRow: Int, dstCol: Int) = Repository.moveCompartment(srcRow, srcCol, dstRow, dstCol)
 
     fun getWineAt(row: Int, col: Int): Wine? = Repository.getWineAt(row, col)
     fun getWineById(id: String): Wine? = Repository.getWineById(id)

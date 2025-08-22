@@ -103,11 +103,6 @@ fun App() {
                         }
                     }
                 },
-                floatingActionButton = {
-                    if (currentRoute == "cellar") {
-                        androidx.compose.material3.ExtendedFloatingActionButton(onClick = { vm.addCompartment() }) { Text("Ajouter un compartiment") }
-                    }
-                }
             ) { paddingValues ->
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.padding(paddingValues)) {
                     composable("home") {
@@ -140,8 +135,6 @@ fun App() {
                             onAdd = { row, col -> nav.navigate("addEdit?row=$row&col=$col") },
                             onMoveWine = { id, r, c -> vm.moveWine(id, r, c) },
                             onOpenSetup = { nav.navigate("setup") },
-                            onAddCompartment = { vm.addCompartment() },
-                            onMoveCompartment = { sr, sc, dr, dc -> vm.moveCompartment(sr, sc, dr, dc) },
                             cellars = allCellars,
                             onSelectCellar = { idx -> vm.setActiveCellar(idx) }
                         )

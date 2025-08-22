@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
@@ -44,6 +46,7 @@ fun SetupScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -60,7 +63,7 @@ fun SetupScreen(
         OutlinedTextField(value = config.name, onValueChange = onSetName, label = { Text("Nom de la cave") }, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(16.dp))
         Column(Modifier.fillMaxWidth()) {
-            Text("Lignes: ${'$'}{config.rows}")
+            Text("Rangées : ${config.rows}")
             Slider(
                 value = config.rows.toFloat(),
                 onValueChange = { v -> onSetRows(v.roundToInt().coerceIn(1, 24)) },
@@ -68,7 +71,7 @@ fun SetupScreen(
                 steps = 22
             )
             Spacer(Modifier.height(8.dp))
-            Text("Colonnes: ${'$'}{config.cols}")
+            Text("Colonnes : ${config.cols}")
             Slider(
                 value = config.cols.toFloat(),
                 onValueChange = { v -> onSetCols(v.roundToInt().coerceIn(1, 24)) },

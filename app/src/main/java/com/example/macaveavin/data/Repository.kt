@@ -20,6 +20,18 @@ object Repository {
     private val _allConfigs = MutableStateFlow(_cellars.value.map { it.config })
     val allConfigs: StateFlow<List<CellarConfig>> = _allConfigs.asStateFlow()
 
+    private fun ensureUniqueName(desired: String, ignoreIndex: Int? = null): String {
+        val existing = _cellars.value.mapIndexed { idx, c -> idx to c.config.name }
+        fun exists(name: String): Boolean = existing.any { (i, n) -> (ignoreIndex == null || i != ignoreIndex) && n.equals(name, ignoreCase = true) }
+        if (!exists(desired)) return desired
+        var i = 2
+        while (true) {
+            val candidate = "$desired ($i)"
+            if (!exists(candidate)) return candidate
+            i++
+        }
+    }
+
     private fun syncActiveSnapshots() {
         if (_cellars.value.isEmpty()) {
             _cellars.value = listOf(Cellar())
@@ -42,8 +54,9 @@ object Repository {
 
     fun addCellar(name: String? = null) {
         val nextIndex = _cellars.value.size
-        val newName = name ?: "Cave ${nextIndex + 1}"
-        val newCellar = Cellar(config = CellarConfig(name = newName), wines = emptyList())
+        val base = name ?: "Cave ${nextIndex + 1}"
+        val unique = ensureUniqueName(base)
+        val newCellar = Cellar(config = CellarConfig(name = unique), wines = emptyList())
         _cellars.value = _cellars.value + newCellar
         _activeIndex.value = nextIndex
         syncActiveSnapshots()
@@ -51,7 +64,8 @@ object Repository {
 
     fun addCellar(config: CellarConfig) {
         val nextIndex = _cellars.value.size
-        val newCellar = Cellar(config = config, wines = emptyList())
+        val unique = ensureUniqueName(config.name)
+        val newCellar = Cellar(config = config.copy(name = unique), wines = emptyList())
         _cellars.value = _cellars.value + newCellar
         _activeIndex.value = nextIndex
         syncActiveSnapshots()
@@ -86,7 +100,9 @@ object Repository {
     }
 
     fun setName(name: String) {
-        setConfig(_config.value.copy(name = name))
+        val idx = _activeIndex.value
+        val unique = ensureUniqueName(name, ignoreIndex = idx)
+        setConfig(_config.value.copy(name = unique))
     }
 
     fun addCompartment() {

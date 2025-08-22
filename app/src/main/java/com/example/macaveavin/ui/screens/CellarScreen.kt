@@ -41,8 +41,10 @@ import androidx.compose.ui.draw.clip
 import coil.compose.rememberAsyncImagePainter
 import com.example.macaveavin.data.CellarConfig
 import com.example.macaveavin.data.Wine
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import com.example.macaveavin.ui.HexagonShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -55,14 +57,12 @@ fun CellarScreen(
     onAdd: (row: Int, col: Int) -> Unit,
     onMoveWine: (wineId: String, row: Int, col: Int) -> Unit,
     onOpenSetup: () -> Unit,
-    onAddCompartment: () -> Unit,
-    onMoveCompartment: (srcRow: Int, srcCol: Int, dstRow: Int, dstCol: Int) -> Unit,
     cellars: List<CellarConfig>,
     onSelectCellar: (Int) -> Unit
 ) {
     val wineByPos = remember(wines) { wines.associateBy { it.row to it.col } }
     val enabledSet: Set<Pair<Int, Int>> = remember(config) {
-        config.enabledCells ?: buildSet {
+        buildSet {
             for (r in 0 until config.rows) for (c in 0 until config.cols) add(r to c)
         }
     }
@@ -84,15 +84,18 @@ fun CellarScreen(
                         }
                     }
                 },
-                actions = { TextButton(onClick = onOpenSetup) { Text("Configurer") } }
+                actions = { TextButton(onClick = onOpenSetup) { Text("Paramètres") } }
             )
         }
-        Column(Modifier.padding(16.dp)) {
+        Column(Modifier
+            .padding(16.dp)
+            .verticalScroll(androidx.compose.foundation.rememberScrollState())
+            .padding(bottom = 16.dp)
+        ) {
             Spacer(Modifier.height(8.dp))
 
             // Drag & drop state
             val draggingWineId = remember { mutableStateOf<String?>(null) }
-            val draggingCompartmentSrc = remember { mutableStateOf<Pair<Int, Int>?>(null) }
             val targetCell = remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
             val hSpacing = 8.dp
@@ -110,13 +113,13 @@ fun CellarScreen(
             Column(
                 verticalArrangement = Arrangement.spacedBy(vSpacing),
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(4.dp)
                     .onGloballyPositioned { coords ->
                         containerW = coords.size.width.toFloat()
                     }
                     .pointerInput(config, wines, enabledSet) {
-                        detectDragGestures(
+                        detectDragGesturesAfterLongPress(
                             onDragStart = { offset ->
                                 val hit = pointToCell(
                                     offset.x,
@@ -126,13 +129,11 @@ fun CellarScreen(
                                     rowsCount,
                                     hSpacingPx,
                                     vSpacingPx
-                                ) ?: return@detectDragGestures
+                                ) ?: return@detectDragGesturesAfterLongPress
                                 val (r, c) = hit
                                 val w = wineByPos[r to c]
                                 if (w != null) {
                                     draggingWineId.value = w.id
-                                } else if ((r to c) in enabledSet) {
-                                    draggingCompartmentSrc.value = r to c
                                 }
                             },
                             onDrag = { change, _ ->
@@ -146,20 +147,15 @@ fun CellarScreen(
                                 if (tgt != null) {
                                     val (tr, tc) = tgt
                                     val wineId = draggingWineId.value
-                                    val compSrc = draggingCompartmentSrc.value
                                     if (wineId != null && (tr to tc) in enabledSet) {
                                         onMoveWine(wineId, tr, tc)
-                                    } else if (compSrc != null && (tr to tc) !in enabledSet && wineByPos[tgt] == null) {
-                                        onMoveCompartment(compSrc.first, compSrc.second, tr, tc)
                                     }
                                 }
                                 draggingWineId.value = null
-                                draggingCompartmentSrc.value = null
                                 targetCell.value = null
                             },
                             onDragCancel = {
                                 draggingWineId.value = null
-                                draggingCompartmentSrc.value = null
                                 targetCell.value = null
                             }
                         )
@@ -197,7 +193,6 @@ fun CellarScreen(
                                         onClick = { if (enabled) onCellClick(r, c) },
                                         onLongClick = {
                                             if (wine != null) draggingWineId.value = wine.id
-                                            else if (enabled) draggingCompartmentSrc.value = r to c
                                         }
                                     )
                                     .padding(4.dp),
@@ -216,7 +211,7 @@ fun CellarScreen(
                                                 .clip(HexagonShape())
                                         )
                                     } else {
-                                        Text("${'$'}{wine.name}")
+                                        Text(wine.name)
                                     }
                                 }
                             }

@@ -51,7 +51,7 @@ fun DetailsScreen(
     val haptics = LocalHapticFeedback.current
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
-        TopAppBar(title = { Text("Fiche d'identité du vin") })
+        TopAppBar(title = { Text("Fiche du vin") })
         Spacer(Modifier.height(12.dp))
         Card(elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(12.dp)) {
@@ -81,21 +81,21 @@ fun DetailsScreen(
                     )
                     Spacer(Modifier.height(12.dp))
                 }
-                Text(text = if (wine.name.isNotBlank()) wine.name else "Vin")
+                Text(text = if (wine.name.isNotBlank()) wine.name else "Vin", style = MaterialTheme.typography.headlineSmall)
                 if (!wine.vintage.isNullOrBlank()) {
                     Spacer(Modifier.height(4.dp))
-                    Text("Millésime: ${wine.vintage}")
+                    Text("Millésime : ${wine.vintage}")
                 }
                 if (!wine.comment.isNullOrBlank()) {
                     Spacer(Modifier.height(4.dp))
-                    Text("Commentaire: ${wine.comment}")
+                    Text("Commentaire : ${wine.comment}")
                 }
                 if (wine.rating != null) {
                     Spacer(Modifier.height(4.dp))
                     StarRating(rating = wine.rating ?: 0f, onRatingChange = null)
                 }
                 Spacer(Modifier.height(8.dp))
-                Text("Emplacement: Ligne ${wine.row + 1}, Colonne ${wine.col + 1}")
+                Text("Emplacement : Rangée ${wine.row + 1}, Colonne ${wine.col + 1}")
             }
         }
         Spacer(Modifier.height(16.dp))
@@ -109,7 +109,7 @@ fun DetailsScreen(
             OutlinedTextField(
                 value = rowState.intValue.toString(),
                 onValueChange = { s -> rowState.intValue = s.filter { it.isDigit() }.toIntOrNull() ?: rowState.intValue },
-                label = { Text("Ligne") },
+                label = { Text("Rangée") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f)
             )
