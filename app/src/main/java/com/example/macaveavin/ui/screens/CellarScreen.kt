@@ -57,12 +57,13 @@ fun CellarScreen(
     onAdd: (row: Int, col: Int) -> Unit,
     onMoveWine: (wineId: String, row: Int, col: Int) -> Unit,
     onOpenSetup: () -> Unit,
+    onMoveCompartment: (srcRow: Int, srcCol: Int, dstRow: Int, dstCol: Int) -> Unit,
     cellars: List<CellarConfig>,
     onSelectCellar: (Int) -> Unit
 ) {
     val wineByPos = remember(wines) { wines.associateBy { it.row to it.col } }
     val enabledSet: Set<Pair<Int, Int>> = remember(config) {
-        buildSet {
+        config.enabledCells ?: buildSet {
             for (r in 0 until config.rows) for (c in 0 until config.cols) add(r to c)
         }
     }
@@ -96,6 +97,7 @@ fun CellarScreen(
 
             // Drag & drop state
             val draggingWineId = remember { mutableStateOf<String?>(null) }
+            val draggingCompartmentSrc = remember { mutableStateOf<Pair<Int, Int>?>(null) }
             val targetCell = remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
             val hSpacing = 8.dp
@@ -134,6 +136,8 @@ fun CellarScreen(
                                 val w = wineByPos[r to c]
                                 if (w != null) {
                                     draggingWineId.value = w.id
+                                } else if ((r to c) in enabledSet) {
+                                    draggingCompartmentSrc.value = r to c
                                 }
                             },
                             onDrag = { change, _ ->
@@ -147,15 +151,20 @@ fun CellarScreen(
                                 if (tgt != null) {
                                     val (tr, tc) = tgt
                                     val wineId = draggingWineId.value
+                                    val compSrc = draggingCompartmentSrc.value
                                     if (wineId != null && (tr to tc) in enabledSet) {
                                         onMoveWine(wineId, tr, tc)
+                                    } else if (compSrc != null && (tr to tc) !in enabledSet && wineByPos[tgt] == null) {
+                                        onMoveCompartment(compSrc.first, compSrc.second, tr, tc)
                                     }
                                 }
                                 draggingWineId.value = null
+                                draggingCompartmentSrc.value = null
                                 targetCell.value = null
                             },
                             onDragCancel = {
                                 draggingWineId.value = null
+                                draggingCompartmentSrc.value = null
                                 targetCell.value = null
                             }
                         )
@@ -190,10 +199,7 @@ fun CellarScreen(
                                     }
                                     .combinedClickable(
                                         enabled = enabled,
-                                        onClick = { if (enabled) onCellClick(r, c) },
-                                        onLongClick = {
-                                            if (wine != null) draggingWineId.value = wine.id
-                                        }
+                                        onClick = { if (enabled) onCellClick(r, c) }
                                     )
                                     .padding(4.dp),
                                 contentAlignment = Alignment.Center

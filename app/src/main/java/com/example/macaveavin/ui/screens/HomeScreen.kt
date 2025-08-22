@@ -85,7 +85,6 @@ fun HomeScreen(
                     pair.forEachIndexed { idx, cfg ->
                         val absoluteIndex = rowIndex * 2 + idx
                         Card(
-                            onClick = { onOpenCellar(absoluteIndex) },
                             modifier = Modifier
                                 .weight(1f)
                                 .aspectRatio(1f)
