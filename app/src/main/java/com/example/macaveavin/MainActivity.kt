@@ -1,6 +1,5 @@
 package com.example.macaveavin
 
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,20 +8,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.macaveavin.data.CaveShape
 import com.example.macaveavin.ui.screens.AddEditScreen
 import com.example.macaveavin.ui.screens.CellarScreen
 import com.example.macaveavin.ui.screens.DetailsScreen
-import com.example.macaveavin.ui.screens.SetupScreen
 import com.example.macaveavin.ui.screens.HomeScreen
+import com.example.macaveavin.ui.screens.SetupScreen
 import com.example.macaveavin.ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
@@ -44,7 +44,9 @@ fun App() {
 
             NavHost(navController = nav, startDestination = "home") {
                 composable("home") {
+                    val cfg by vm.config.collectAsState()
                     HomeScreen(
+                        cellarName = cfg.name,
                         onOpenCellar = { nav.navigate("cellar") },
                         onOpenSetup = { nav.navigate("setup") }
                     )
@@ -53,7 +55,8 @@ fun App() {
                     val cfg by vm.config.collectAsState()
                     SetupScreen(
                         config = cfg,
-                        onSelectPreset = { r, c -> vm.setConfig(r, c) },
+                        onSetName = { vm.setName(it) },
+                        onSelectShape = { vm.setShape(it) },
                         onContinue = { nav.navigate("cellar") }
                     )
                 }
@@ -62,8 +65,7 @@ fun App() {
                     val cfg by vm.config.collectAsState()
                     val query by vm.query.collectAsState()
                     CellarScreen(
-                        rows = cfg.rows,
-                        cols = cfg.cols,
+                        config = cfg,
                         wines = wines,
                         query = query,
                         onQueryChange = { vm.query.value = it },
@@ -74,7 +76,8 @@ fun App() {
                         },
                         onAdd = { row, col -> nav.navigate("addEdit?row=$row&col=$col") },
                         onMoveWine = { id, r, c -> vm.moveWine(id, r, c) },
-                        onOpenSetup = { nav.navigate("setup") }
+                        onOpenSetup = { nav.navigate("setup") },
+                        onAddCompartment = { vm.addCompartment() }
                     )
                 }
                 composable(

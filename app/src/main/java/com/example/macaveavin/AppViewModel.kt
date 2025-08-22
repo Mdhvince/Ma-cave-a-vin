@@ -2,6 +2,7 @@ package com.example.macaveavin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.macaveavin.data.CaveShape
 import com.example.macaveavin.data.CellarConfig
 import com.example.macaveavin.data.Repository
 import com.example.macaveavin.data.Wine
@@ -32,6 +33,10 @@ class AppViewModel : ViewModel() {
     }
 
     fun setConfig(rows: Int, cols: Int) = Repository.setConfig(rows, cols)
+
+    fun setName(name: String) = Repository.setName(name)
+    fun setShape(shape: CaveShape) = Repository.setShape(shape)
+    fun addCompartment() = Repository.addCompartment()
 
     fun addWine(wine: Wine) = Repository.addWine(wine)
     fun updateWine(w: Wine) = Repository.updateWine(w)
