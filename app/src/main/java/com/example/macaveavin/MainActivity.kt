@@ -141,7 +141,9 @@ fun App() {
                             onMoveWine = { id, r, c -> vm.moveWine(id, r, c) },
                             onOpenSetup = { nav.navigate("setup") },
                             onAddCompartment = { vm.addCompartment() },
-                            onMoveCompartment = { sr, sc, dr, dc -> vm.moveCompartment(sr, sc, dr, dc) }
+                            onMoveCompartment = { sr, sc, dr, dc -> vm.moveCompartment(sr, sc, dr, dc) },
+                            cellars = allCellars,
+                            onSelectCellar = { idx -> vm.setActiveCellar(idx) }
                         )
                     }
                     composable(

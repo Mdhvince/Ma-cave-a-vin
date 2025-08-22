@@ -79,8 +79,8 @@ object Repository {
     fun setConfig(newConfig: CellarConfig) {
         val idx = _activeIndex.value
         val current = _cellars.value[idx]
-        val filteredWines = current.wines.filter { isInBounds(it.row, it.col, newConfig) }
-        val updated = current.copy(config = newConfig, wines = filteredWines)
+        // Keep wines even if they temporarily fall out-of-bounds when resizing; they should not disappear
+        val updated = current.copy(config = newConfig, wines = current.wines)
         _cellars.value = _cellars.value.toMutableList().also { it[idx] = updated }
         syncActiveSnapshots()
     }

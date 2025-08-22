@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.macaveavin.data.CellarConfig
 import com.example.macaveavin.ui.HexagonShape
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,18 +59,21 @@ fun SetupScreen(
         Spacer(Modifier.height(16.dp))
         OutlinedTextField(value = config.name, onValueChange = onSetName, label = { Text("Nom de la cave") }, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(16.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = config.rows.toString(),
-                onValueChange = { s -> s.filter { it.isDigit() }.toIntOrNull()?.let(onSetRows) },
-                label = { Text("Lignes") },
-                modifier = Modifier.weight(1f)
+        Column(Modifier.fillMaxWidth()) {
+            Text("Lignes: ${'$'}{config.rows}")
+            Slider(
+                value = config.rows.toFloat(),
+                onValueChange = { v -> onSetRows(v.roundToInt().coerceIn(1, 24)) },
+                valueRange = 1f..24f,
+                steps = 22
             )
-            OutlinedTextField(
-                value = config.cols.toString(),
-                onValueChange = { s -> s.filter { it.isDigit() }.toIntOrNull()?.let(onSetCols) },
-                label = { Text("Colonnes") },
-                modifier = Modifier.weight(1f)
+            Spacer(Modifier.height(8.dp))
+            Text("Colonnes: ${'$'}{config.cols}")
+            Slider(
+                value = config.cols.toFloat(),
+                onValueChange = { v -> onSetCols(v.roundToInt().coerceIn(1, 24)) },
+                valueRange = 1f..24f,
+                steps = 22
             )
         }
         Spacer(Modifier.height(16.dp))

@@ -21,6 +21,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
@@ -53,7 +56,9 @@ fun CellarScreen(
     onMoveWine: (wineId: String, row: Int, col: Int) -> Unit,
     onOpenSetup: () -> Unit,
     onAddCompartment: () -> Unit,
-    onMoveCompartment: (srcRow: Int, srcCol: Int, dstRow: Int, dstCol: Int) -> Unit
+    onMoveCompartment: (srcRow: Int, srcCol: Int, dstRow: Int, dstCol: Int) -> Unit,
+    cellars: List<CellarConfig>,
+    onSelectCellar: (Int) -> Unit
 ) {
     val wineByPos = remember(wines) { wines.associateBy { it.row to it.col } }
     val enabledSet: Set<Pair<Int, Int>> = remember(config) {
@@ -63,7 +68,25 @@ fun CellarScreen(
     }
 
     Column(Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text(config.name) }, actions = { androidx.compose.material3.TextButton(onClick = onOpenSetup) { Text("Configurer") } })
+        run {
+            var expanded = remember { mutableStateOf(false) }
+            val selectedIndex = remember(config, cellars) { cellars.indexOf(config).coerceAtLeast(0) }
+            TopAppBar(
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TextButton(onClick = { expanded.value = true }) {
+                            Text(cellars.getOrNull(selectedIndex)?.name ?: config.name)
+                        }
+                        DropdownMenu(expanded = expanded.value, onDismissRequest = { expanded.value = false }) {
+                            cellars.forEachIndexed { idx, c ->
+                                DropdownMenuItem(text = { Text(c.name) }, onClick = { expanded.value = false; onSelectCellar(idx) })
+                            }
+                        }
+                    }
+                },
+                actions = { TextButton(onClick = onOpenSetup) { Text("Configurer") } }
+            )
+        }
         Column(Modifier.padding(16.dp)) {
             Spacer(Modifier.height(8.dp))
 
