@@ -2,24 +2,14 @@ package com.example.macaveavin.data
 
 import java.util.UUID
 
-enum class CaveShape { SIMPLE, PYRAMID }
-
+// Simplified model: rectangular grid with optional sparse enabled cells.
+// When enabledCells is null, the entire rows x cols grid is considered enabled.
 data class CellarConfig(
     val name: String = "Ma Cave",
-    val shape: CaveShape = CaveShape.SIMPLE,
-    val simpleSize: Int = 4, // Simple: NxN
-    val pyramidBase: Int = 5 // Pyramid: base width
-) {
-    // Derived values for backward compatibility
-    val rows: Int get() = when (shape) {
-        CaveShape.SIMPLE -> simpleSize
-        CaveShape.PYRAMID -> pyramidBase // number of rows
-    }
-    val cols: Int get() = when (shape) {
-        CaveShape.SIMPLE -> simpleSize
-        CaveShape.PYRAMID -> pyramidBase // max columns (base width)
-    }
-}
+    val rows: Int = 4,
+    val cols: Int = 4,
+    val enabledCells: Set<Pair<Int, Int>>? = null
+)
 
 data class Wine(
     val id: String = UUID.randomUUID().toString(),
@@ -31,4 +21,10 @@ data class Wine(
     val row: Int,
     val col: Int,
     val createdAt: Long = System.currentTimeMillis()
+)
+
+// Represents a single cellar with its configuration and wines
+data class Cellar(
+    val config: CellarConfig = CellarConfig(),
+    val wines: List<Wine> = emptyList()
 )

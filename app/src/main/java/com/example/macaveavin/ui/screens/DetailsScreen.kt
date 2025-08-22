@@ -1,7 +1,9 @@
 package com.example.macaveavin.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.OutlinedTextField
@@ -22,11 +25,14 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import com.example.macaveavin.data.Wine
 import com.example.macaveavin.ui.StarRating
 
@@ -42,6 +48,7 @@ fun DetailsScreen(
     val rowState = remember(wine.row) { mutableIntStateOf(wine.row) }
     val colState = remember(wine.col) { mutableIntStateOf(wine.col) }
     val showConfirm = remember { mutableStateOf(false) }
+    val haptics = LocalHapticFeedback.current
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         TopAppBar(title = { Text("Fiche d'identité du vin") })
@@ -49,11 +56,28 @@ fun DetailsScreen(
         Card(elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(12.dp)) {
                 if (wine.photoUri != null) {
-                    Image(
-                        painter = rememberAsyncImagePainter(wine.photoUri),
+                    SubcomposeAsyncImage(
+                        model = wine.photoUri,
                         contentDescription = "Photo de l'étiquette",
                         modifier = Modifier.fillMaxWidth().height(220.dp),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        loading = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                            )
+                        },
+                        error = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(220.dp)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                            )
+                        },
+                        success = { SubcomposeAsyncImageContent() }
                     )
                     Spacer(Modifier.height(12.dp))
                 }
@@ -106,7 +130,7 @@ fun DetailsScreen(
             AlertDialog(
                 onDismissRequest = { showConfirm.value = false },
                 confirmButton = {
-                    Button(onClick = { showConfirm.value = false; onDelete() }) { Text("Confirmer") }
+                    Button(onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); showConfirm.value = false; onDelete() }) { Text("Confirmer") }
                 },
                 dismissButton = {
                     Button(onClick = { showConfirm.value = false }) { Text("Annuler") }

@@ -21,14 +21,32 @@ Une application android minimalist et un design ultra moderne, une UX de haut ni
 ### Suppression
 1. Supprimer un vin de la cave
 
+## Modernisation (Phase 1)
 
+Cette application est en cours de refonte vers Material Design 3 (Jetpack Compose).
 
-- Une partie configuration pour nommer ses caves, ajouter plusieurs caves, ajouter le vin dans la cave
-- Un acceuil avec message (i.e Bienvenue dans la cave xxxx) + un dessing (i.e svg) d'un verre de vin
-- Je veux des compartiments de la cave un design nid d'abeille
-- La possibilite de choisir la forme de la cave : Simple, Pyramidale (avec un visuel en temps reel)
-- Pas choix de lignes ou colonne
-- Simple : 4x4 par default
-- Pyramidale : Base de 5 puis 4,3,2,1 par default
-- L'ajout d'un compartiment sur cave existante possible a tout moment
-- lors de l'appuis sur un compartiment occupe, on doit voir une belle fiche d'identite du vin avec photo + infos si on les a entres
+Implémenté dans cette phase:
+- Material Design 3 + theming dynamique (Android 12+) + mode sombre/clair automatique
+- Palette statique inspirée du vin (bourgogne profond, accents or) en fallback
+- Typographie Material 3
+- FAB contextuel (Home: ajouter une cave, Cellar: ajouter un compartiment)
+- Pull-to-refresh sur l’écran d’accueil (liste des caves)
+- Quick actions: appui long sur une carte de cave pour supprimer (avec haptique et confirmation)
+- États de chargement image: placeholder « skeleton » pour les images hero (détails du vin)
+- Recherches débouncées pour de meilleures performances
+- Navigation: barre de navigation inférieure (Bottom Navigation), suppression des tiroirs (drawers)
+
+Déjà présent:
+- Bottom Sheet pour les actions secondaires (configuration, cave)
+- Cartes avec elevation et coins arrondis
+
+Prochaines étapes (proposées):
+- Gestes de swipe (supprimer/archiver), états vides/erreur enrichis
+- Transitions animées entre écrans (shared elements / animations)
+- Offline-first + Room + WorkManager (sync)
+- Pagination/LazyLoading avancée, cache image
+
+Tech:
+- UI: Jetpack Compose + Material3
+- Image: Coil Compose
+- Navigation: Navigation Compose

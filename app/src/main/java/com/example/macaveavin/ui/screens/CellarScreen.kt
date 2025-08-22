@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,11 +14,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,9 +34,9 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clip
 import coil.compose.rememberAsyncImagePainter
 import com.example.macaveavin.data.CellarConfig
-import com.example.macaveavin.data.CaveShape
 import com.example.macaveavin.data.Wine
 import androidx.compose.foundation.gestures.detectDragGestures
 import com.example.macaveavin.ui.HexagonShape
@@ -49,38 +52,37 @@ fun CellarScreen(
     onAdd: (row: Int, col: Int) -> Unit,
     onMoveWine: (wineId: String, row: Int, col: Int) -> Unit,
     onOpenSetup: () -> Unit,
-    onAddCompartment: () -> Unit
+    onAddCompartment: () -> Unit,
+    onMoveCompartment: (srcRow: Int, srcCol: Int, dstRow: Int, dstCol: Int) -> Unit
 ) {
     val wineByPos = remember(wines) { wines.associateBy { it.row to it.col } }
+    val enabledSet: Set<Pair<Int, Int>> = remember(config) {
+        config.enabledCells ?: buildSet {
+            for (r in 0 until config.rows) for (c in 0 until config.cols) add(r to c)
+        }
+    }
 
     Column(Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text(config.name) }, actions = {
-            IconButton(onClick = onOpenSetup) { Text("⚙️ Config") }
-            IconButton(onClick = onAddCompartment) { Text("➕ Compartiment") }
-        })
+        TopAppBar(title = { Text(config.name) }, actions = { androidx.compose.material3.TextButton(onClick = onOpenSetup) { Text("Configurer") } })
         Column(Modifier.padding(16.dp)) {
             Spacer(Modifier.height(8.dp))
 
-            // Drag & drop state (enabled only for SIMPLE grid for now)
-            val draggingId = remember { mutableStateOf<String?>(null) }
+            // Drag & drop state
+            val draggingWineId = remember { mutableStateOf<String?>(null) }
+            val draggingCompartmentSrc = remember { mutableStateOf<Pair<Int, Int>?>(null) }
             val targetCell = remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
             val hSpacing = 8.dp
             val vSpacing = 12.dp
-            val cellHeight = 72.dp
 
-            var containerX = 0f
-            var containerY = 0f
             var containerW = 0f
-            var containerH = 0f
 
             val density = androidx.compose.ui.platform.LocalDensity.current
             val hSpacingPx = with(density) { hSpacing.toPx() }
             val vSpacingPx = with(density) { vSpacing.toPx() }
-            val cellHeightPx = with(density) { cellHeight.toPx() }
 
-            val rowsCount = if (config.shape == CaveShape.SIMPLE) config.simpleSize else config.pyramidBase
-            val maxCols = if (config.shape == CaveShape.SIMPLE) config.simpleSize else config.pyramidBase
+            val rowsCount = config.rows
+            val maxCols = config.cols
 
             Column(
                 verticalArrangement = Arrangement.spacedBy(vSpacing),
@@ -88,111 +90,120 @@ fun CellarScreen(
                     .fillMaxSize()
                     .padding(4.dp)
                     .onGloballyPositioned { coords ->
-                        val pos = coords.positionInWindow()
-                        containerX = pos.x
-                        containerY = pos.y
                         containerW = coords.size.width.toFloat()
-                        containerH = coords.size.height.toFloat()
                     }
-                    .let { base ->
-                        if (config.shape == CaveShape.SIMPLE) {
-                            base.pointerInput(config, wines) {
-                                detectDragGestures(
-                                    onDragStart = { offset ->
-                                        val hit = pointToCell(
-                                            offset.x - containerX,
-                                            offset.y - containerY,
-                                            containerW,
-                                            maxCols,
-                                            rowsCount,
-                                            hSpacingPx,
-                                            cellHeightPx,
-                                            vSpacingPx
-                                        ) ?: return@detectDragGestures
-                                        val w = wineByPos[hit.first to hit.second]
-                                        if (w != null) draggingId.value = w.id
-                                    },
-                                    onDrag = { change, _ ->
-                                        val x = change.position.x - containerX
-                                        val y = change.position.y - containerY
-                                        targetCell.value = pointToCell(x, y, containerW, maxCols, rowsCount, hSpacingPx, cellHeightPx, vSpacingPx)
-                                    },
-                                    onDragEnd = {
-                                        val id = draggingId.value
-                                        val tgt = targetCell.value
-                                        if (id != null && tgt != null) {
-                                            onMoveWine(id, tgt.first, tgt.second)
-                                        }
-                                        draggingId.value = null
-                                        targetCell.value = null
-                                    },
-                                    onDragCancel = {
-                                        draggingId.value = null
-                                        targetCell.value = null
+                    .pointerInput(config, wines, enabledSet) {
+                        detectDragGestures(
+                            onDragStart = { offset ->
+                                val hit = pointToCell(
+                                    offset.x,
+                                    offset.y,
+                                    containerW,
+                                    maxCols,
+                                    rowsCount,
+                                    hSpacingPx,
+                                    vSpacingPx
+                                ) ?: return@detectDragGestures
+                                val (r, c) = hit
+                                val w = wineByPos[r to c]
+                                if (w != null) {
+                                    draggingWineId.value = w.id
+                                } else if ((r to c) in enabledSet) {
+                                    draggingCompartmentSrc.value = r to c
+                                }
+                            },
+                            onDrag = { change, _ ->
+                                val x = change.position.x
+                                val y = change.position.y
+                                val tgt = pointToCell(x, y, containerW, maxCols, rowsCount, hSpacingPx, vSpacingPx)
+                                targetCell.value = tgt
+                            },
+                            onDragEnd = {
+                                val tgt = targetCell.value
+                                if (tgt != null) {
+                                    val (tr, tc) = tgt
+                                    val wineId = draggingWineId.value
+                                    val compSrc = draggingCompartmentSrc.value
+                                    if (wineId != null && (tr to tc) in enabledSet) {
+                                        onMoveWine(wineId, tr, tc)
+                                    } else if (compSrc != null && (tr to tc) !in enabledSet && wineByPos[tgt] == null) {
+                                        onMoveCompartment(compSrc.first, compSrc.second, tr, tc)
                                     }
-                                )
+                                }
+                                draggingWineId.value = null
+                                draggingCompartmentSrc.value = null
+                                targetCell.value = null
+                            },
+                            onDragCancel = {
+                                draggingWineId.value = null
+                                draggingCompartmentSrc.value = null
+                                targetCell.value = null
                             }
-                        } else base
+                        )
                     }
             ) {
                 repeat(rowsCount) { r ->
-                    val colsInRow = if (config.shape == CaveShape.SIMPLE) maxCols else (r + 1)
                     Row(horizontalArrangement = Arrangement.spacedBy(hSpacing), modifier = Modifier.fillMaxWidth()) {
-                        // leading space to center pyramid rows
-                        val leading = if (config.shape == CaveShape.SIMPLE) 0 else (maxCols - colsInRow)
-                        repeat(leading) { Spacer(modifier = Modifier.weight(0.5f)) }
-                        repeat(colsInRow) { c ->
+                        repeat(maxCols) { c ->
                             val wine = wineByPos[r to c]
+                            val enabled = (r to c) in enabledSet
                             val isTarget = targetCell.value?.first == r && targetCell.value?.second == c
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(cellHeight)
+                                    .aspectRatio(1f)
                                     .let { base ->
                                         val borderColor = when {
                                             isTarget -> Color(0xFF00C853)
                                             wine != null -> MaterialTheme.colorScheme.primary
-                                            else -> MaterialTheme.colorScheme.outline
+                                            enabled -> MaterialTheme.colorScheme.outline
+                                            else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                                         }
-                                        val withBg = if (wine == null) {
-                                            base.background(
+                                        val bg = when {
+                                            wine != null -> base
+                                            enabled -> base.background(
                                                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
                                                 shape = HexagonShape()
                                             )
-                                        } else base
-                                        withBg.border(BorderStroke(2.dp, borderColor), shape = HexagonShape())
+                                            else -> base
+                                        }
+                                        bg.border(BorderStroke(2.dp, borderColor), shape = HexagonShape())
                                     }
                                     .combinedClickable(
-                                        onClick = { onCellClick(r, c) },
-                                        onLongClick = { if (wine != null) draggingId.value = wine.id }
+                                        enabled = enabled,
+                                        onClick = { if (enabled) onCellClick(r, c) },
+                                        onLongClick = {
+                                            if (wine != null) draggingWineId.value = wine.id
+                                            else if (enabled) draggingCompartmentSrc.value = r to c
+                                        }
                                     )
                                     .padding(4.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (wine == null) {
-                                    Text("+")
+                                    if (enabled) Text("+")
                                 } else {
                                     if (wine.photoUri != null) {
                                         androidx.compose.foundation.Image(
                                             painter = rememberAsyncImagePainter(wine.photoUri),
                                             contentDescription = null,
                                             contentScale = ContentScale.Crop,
-                                            modifier = Modifier.fillMaxSize()
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(HexagonShape())
                                         )
                                     } else {
-                                        Text("${wine.name}")
+                                        Text("${'$'}{wine.name}")
                                     }
                                 }
                             }
                         }
-                        repeat(leading) { Spacer(modifier = Modifier.weight(0.5f)) }
                     }
                 }
             }
         }
     }
 }
-
 
 private fun pointToCell(
     x: Float,
@@ -201,15 +212,15 @@ private fun pointToCell(
     cols: Int,
     rows: Int,
     hSpacingPx: Float,
-    cellHeightPx: Float,
     vSpacingPx: Float
 ): Pair<Int, Int>? {
     if (cols <= 0) return null
     val totalHSpacing = hSpacingPx * (cols - 1)
     val cellWidth = ((containerWidthPx - totalHSpacing) / cols).coerceAtLeast(1f)
+    val cellHeight = cellWidth
     if (x < 0f || y < 0f) return null
     val col = (x / (cellWidth + hSpacingPx)).toInt()
-    val row = (y / (cellHeightPx + vSpacingPx)).toInt()
+    val row = (y / (cellHeight + vSpacingPx)).toInt()
     if (col !in 0 until cols) return null
     if (row !in 0 until rows) return null
     return row to col
