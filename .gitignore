@@ -1,0 +1,28 @@
+*.iml
+.gradle
+.idea
+local.properties
+
+.DS_Store
+build
+captures
+.externalNativeBuild
+.cxx
+
+# Android/Gradle - build outputs in all modules
+**/build/
+
+# Kotlin build cache
+.kotlin/
+
+# NDK/External native build artifacts
+obj/
+
+# Android package outputs
+*.apk
+*.aab
+*.ap_
+
+# Keystore files (do not commit signing keys)
+*.keystore
+*.jks

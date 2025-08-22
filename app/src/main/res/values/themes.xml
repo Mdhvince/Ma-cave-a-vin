@@ -1,0 +1,4 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme using Material Components without action bar. Colors are handled by Compose Material3. -->
+    <style name="Theme.MaCaveAVin" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+</resources>
