@@ -53,14 +53,8 @@ fun DetailsScreen(
             )
             Spacer(Modifier.height(12.dp))
         }
-        Text(wine.name)
-        Spacer(Modifier.height(4.dp))
-        if (wine.vintage != null) Text("Millésime: ${'$'}{wine.vintage}")
-        if (wine.rating != null) Text("Note: ${'$'}{wine.rating}/10")
-        if (wine.comment != null) {
-            Spacer(Modifier.height(4.dp))
-            Text(wine.comment)
-        }
+        // Affichage simplifié: uniquement la photo et la position
+        Text("Emplacement: Ligne ${wine.row + 1}, Colonne ${wine.col + 1}")
         Spacer(Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             Button(onClick = onBack, modifier = Modifier.weight(1f)) { Text("Retour") }

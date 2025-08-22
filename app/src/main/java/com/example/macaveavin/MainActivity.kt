@@ -22,6 +22,7 @@ import com.example.macaveavin.ui.screens.AddEditScreen
 import com.example.macaveavin.ui.screens.CellarScreen
 import com.example.macaveavin.ui.screens.DetailsScreen
 import com.example.macaveavin.ui.screens.SetupScreen
+import com.example.macaveavin.ui.screens.HomeScreen
 import com.example.macaveavin.ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
@@ -41,7 +42,13 @@ fun App() {
             val nav = rememberNavController()
             val vm: AppViewModel = viewModel()
 
-            NavHost(navController = nav, startDestination = "setup") {
+            NavHost(navController = nav, startDestination = "home") {
+                composable("home") {
+                    HomeScreen(
+                        onOpenCellar = { nav.navigate("cellar") },
+                        onOpenSetup = { nav.navigate("setup") }
+                    )
+                }
                 composable("setup") {
                     val cfg by vm.config.collectAsState()
                     SetupScreen(
@@ -65,7 +72,9 @@ fun App() {
                             if (existing == null) nav.navigate("addEdit?row=$row&col=$col")
                             else nav.navigate("details/${existing.id}")
                         },
-                        onAdd = { row, col -> nav.navigate("addEdit?row=$row&col=$col") }
+                        onAdd = { row, col -> nav.navigate("addEdit?row=$row&col=$col") },
+                        onMoveWine = { id, r, c -> vm.moveWine(id, r, c) },
+                        onOpenSetup = { nav.navigate("setup") }
                     )
                 }
                 composable(

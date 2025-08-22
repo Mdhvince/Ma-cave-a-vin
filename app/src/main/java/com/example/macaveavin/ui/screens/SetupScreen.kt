@@ -1,5 +1,7 @@
 package com.example.macaveavin.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -51,7 +53,7 @@ fun SetupScreen(
             Button(onClick = { rowsState.intValue = 5; colsState.intValue = 5 }) { Text("5x5") }
         }
         Spacer(Modifier.height(16.dp))
-        Text("Lignes: ${'$'}{rowsState.intValue}")
+        Text("Lignes: ${rowsState.intValue}")
         Slider(
             value = rowsState.intValue.toFloat(),
             onValueChange = { rowsState.intValue = it.toInt().coerceIn(1, 12) },
@@ -59,7 +61,7 @@ fun SetupScreen(
             steps = 10,
             modifier = Modifier.semantics { contentDescription = "slider_lignes" }
         )
-        Text("Colonnes: ${'$'}{colsState.intValue}")
+        Text("Colonnes: ${colsState.intValue}")
         Slider(
             value = colsState.intValue.toFloat(),
             onValueChange = { colsState.intValue = it.toInt().coerceIn(1, 12) },
@@ -67,6 +69,33 @@ fun SetupScreen(
             steps = 10,
             modifier = Modifier.semantics { contentDescription = "slider_colonnes" }
         )
+        Spacer(Modifier.height(16.dp))
+        // Aperçu en temps réel de la cave
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Text("Aperçu (${rowsState.intValue} x ${colsState.intValue})")
+            Spacer(Modifier.height(8.dp))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                repeat(rowsState.intValue) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                        repeat(colsState.intValue) {
+                            Spacer(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(28.dp)
+                                    .border(BorderStroke(1.dp, androidx.compose.ui.graphics.Color.Gray))
+                            )
+                        }
+                    }
+                }
+            }
+        }
         Spacer(Modifier.height(24.dp))
         Button(
             onClick = {
