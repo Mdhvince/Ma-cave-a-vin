@@ -66,7 +66,7 @@ fun App() {
             Scaffold(
                 bottomBar = {
                     if (showBottomBar) {
-                        NavigationBar {
+                        NavigationBar(tonalElevation = 3.dp) {
                             val items = listOf("home" to "Accueil", "cellar" to "Cave")
                             val current = backStack?.destination
                             for ((route, label) in items) {

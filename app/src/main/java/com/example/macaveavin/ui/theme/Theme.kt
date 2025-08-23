@@ -8,9 +8,12 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.Typography
+import androidx.compose.material3.Shapes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
 
 // Wine-inspired static color palettes (used when dynamic color is not available or disabled)
 private val WineLightColors = lightColorScheme(
@@ -53,8 +56,17 @@ private val WineDarkColors = darkColorScheme(
     outline = Color(0xFFA08B91)
 )
 
-// Material 3 Typography scale (can be adjusted later)
+// Material 3 Typography scale (kept default to avoid functional changes)
 private val AppTypography = Typography()
+
+// Modern rounded shapes for an up-to-date look and better touch ergonomics
+private val AppShapes = Shapes(
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(28.dp)
+)
 
 @Composable
 fun AppTheme(
@@ -73,6 +85,7 @@ fun AppTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = AppTypography,
+        shapes = AppShapes,
         content = content
     )
 }

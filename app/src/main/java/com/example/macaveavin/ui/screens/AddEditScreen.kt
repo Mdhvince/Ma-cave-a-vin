@@ -67,9 +67,28 @@ fun AddEditScreen(
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         TopAppBar(title = { Text(if (initialWine == null) "Ajouter une bouteille" else "Modifier la bouteille") })
         Spacer(Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            Button(onClick = { cameraLauncher.launch(null) }, modifier = Modifier.weight(1f)) { Text("Prendre une photo") }
-            Button(onClick = { photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, modifier = Modifier.weight(1f)) { Text("Galerie") }
+        // Single modern photo action with dropdown options
+        run {
+            var expanded by remember { mutableStateOf(false) }
+            Button(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+                Text(if (photoUri == null) "Ajouter une photo" else "Changer la photo")
+            }
+            androidx.compose.material3.DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                androidx.compose.material3.DropdownMenuItem(
+                    text = { Text("Prendre une photo") },
+                    onClick = {
+                        expanded = false
+                        cameraLauncher.launch(null)
+                    }
+                )
+                androidx.compose.material3.DropdownMenuItem(
+                    text = { Text("Choisir depuis la galerie") },
+                    onClick = {
+                        expanded = false
+                        photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    }
+                )
+            }
         }
         Spacer(Modifier.height(12.dp))
         if (photoUri != null) {

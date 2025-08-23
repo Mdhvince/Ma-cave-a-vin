@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -34,6 +35,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.macaveavin.R
 import com.example.macaveavin.data.CellarConfig
+import androidx.compose.animation.animateContentSize
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.WineBar
+import androidx.compose.material.icons.filled.Add
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -70,71 +78,55 @@ fun HomeScreen(
             Spacer(Modifier.height(16.dp))
             Image(
                 painter = painterResource(id = R.drawable.ic_wine_glass),
-                contentDescription = null,
+                contentDescription = "Illustration verre de vin",
                 modifier = Modifier.size(96.dp)
             )
             Spacer(Modifier.height(24.dp))
 
-            // Grid: 2 columns of existing caves
-            val rows = cellars.chunked(2)
-            rows.forEachIndexed { rowIndex, pair ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    pair.forEachIndexed { idx, cfg ->
-                        val absoluteIndex = rowIndex * 2 + idx
-                        Card(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f)
-                                .combinedClickable(
-                                    onClick = { onOpenCellar(absoluteIndex) },
-                                    onLongClick = {
-                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        showConfirm.value = absoluteIndex
-                                    }
-                                ),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                        ) {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(text = cfg.name, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
-                                    Spacer(Modifier.height(6.dp))
-                                    Text(text = "Ouvrir la cave", style = MaterialTheme.typography.bodyMedium)
-                                }
+            // List: full-width rectangular items of existing caves
+            cellars.forEachIndexed { index, cfg ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(72.dp)
+                        .animateContentSize()
+                        .combinedClickable(
+                            onClick = { onOpenCellar(index) },
+                            onLongClick = {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showConfirm.value = index
                             }
+                        ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Icon(Icons.Filled.WineBar, contentDescription = null)
+                            Text(text = cfg.name, style = MaterialTheme.typography.titleMedium)
                         }
-                    }
-                    if (pair.size == 1) {
-                        Spacer(modifier = Modifier.weight(1f))
+                        Icon(Icons.Filled.ChevronRight, contentDescription = null)
                     }
                 }
                 Spacer(Modifier.height(12.dp))
             }
 
-            // Add new cellar card
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            // Add new cellar primary action: distinct filled tonal button
+            androidx.compose.material3.FilledTonalButton(
+                onClick = onAddCellar,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .animateContentSize()
             ) {
-                Card(
-                    onClick = onAddCellar,
-                    modifier = Modifier
-                        .weight(1f)
-                        .aspectRatio(1f),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = "+", style = MaterialTheme.typography.headlineMedium)
-                            Spacer(Modifier.height(6.dp))
-                            Text(text = "Ajouter une cave", style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.weight(1f))
+                Icon(Icons.Filled.Add, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(text = "Ajouter une cave", style = MaterialTheme.typography.titleMedium)
             }
 
             if (onQuickAdd != null) {

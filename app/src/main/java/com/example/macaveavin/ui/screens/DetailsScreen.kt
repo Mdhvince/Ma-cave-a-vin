@@ -15,6 +15,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.animation.animateContentSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,7 +54,7 @@ fun DetailsScreen(
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         TopAppBar(title = { Text("Fiche du vin") })
         Spacer(Modifier.height(12.dp))
-        Card(elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), modifier = Modifier.fillMaxWidth()) {
+        Card(elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), modifier = Modifier.fillMaxWidth().animateContentSize()) {
             Column(Modifier.padding(12.dp)) {
                 if (wine.photoUri != null) {
                     SubcomposeAsyncImage(

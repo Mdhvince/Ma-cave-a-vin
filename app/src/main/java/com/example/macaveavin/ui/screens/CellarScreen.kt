@@ -22,10 +22,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +40,8 @@ import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.clip
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import coil.compose.rememberAsyncImagePainter
 import com.example.macaveavin.data.CellarConfig
 import com.example.macaveavin.data.Wine
@@ -45,6 +49,7 @@ import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import com.example.macaveavin.ui.HexagonShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.runtime.getValue
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -75,8 +80,11 @@ fun CellarScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = { expanded.value = true }) {
-                            Text(cellars.getOrNull(selectedIndex)?.name ?: config.name)
+                        OutlinedButton(onClick = { expanded.value = true }) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(cellars.getOrNull(selectedIndex)?.name ?: config.name)
+                                Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+                            }
                         }
                         DropdownMenu(expanded = expanded.value, onDismissRequest = { expanded.value = false }) {
                             cellars.forEachIndexed { idx, c ->
@@ -181,12 +189,13 @@ fun CellarScreen(
                                     .weight(1f)
                                     .aspectRatio(1f)
                                     .let { base ->
-                                        val borderColor = when {
+                                        val targetBorderColor = when {
                                             isTarget -> Color(0xFF00C853)
                                             wine != null -> MaterialTheme.colorScheme.primary
                                             enabled -> MaterialTheme.colorScheme.outline
                                             else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                                         }
+                                        val borderColor by animateColorAsState(targetValue = targetBorderColor, label = "cellBorder")
                                         val bg = when {
                                             wine != null -> base
                                             enabled -> base.background(
@@ -197,6 +206,7 @@ fun CellarScreen(
                                         }
                                         bg.border(BorderStroke(2.dp, borderColor), shape = HexagonShape())
                                     }
+                                    .animateContentSize()
                                     .combinedClickable(
                                         enabled = enabled,
                                         onClick = { if (enabled) onCellClick(r, c) }
