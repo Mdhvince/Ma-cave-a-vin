@@ -59,7 +59,7 @@ fun StarRating(
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .padding(horizontal = 2.dp)
-                    .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                    .sizeIn(minHeight = 48.dp)
                     .scale(scale)
                     .let { base ->
                         if (isReadOnly) base else base
