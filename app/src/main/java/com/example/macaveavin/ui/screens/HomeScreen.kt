@@ -128,7 +128,7 @@ fun HomeScreen(
                                         onDrag = { change, dragAmount ->
                                             totalDy += dragAmount.y
                                             val moved = (totalDy / slotPx).roundToInt()
-                                            val target = (index + moved).coerceIn(0, cellars.lastIndex)
+                                            val target = (index + moved).coerceIn(0, cellars.size)
                                             dropIndex.value = target
                                             change.consume()
                                         },
@@ -139,8 +139,12 @@ fun HomeScreen(
                                         onDragEnd = {
                                             val from = draggingFrom.value
                                             val target = dropIndex.value
-                                            if (from != null && target != null && target != from) {
-                                                onMoveCellar?.invoke(from, target)
+                                            if (from != null && target != null) {
+                                                val lastIndex = (cellars.size - 1).coerceAtLeast(0)
+                                                val clamped = target.coerceIn(0, lastIndex)
+                                                if (clamped != from) {
+                                                    onMoveCellar?.invoke(from, clamped)
+                                                }
                                             }
                                             draggingFrom.value = null
                                             dropIndex.value = null
@@ -181,6 +185,12 @@ fun HomeScreen(
                     }
                 }
                 Spacer(Modifier.height(12.dp))
+            }
+
+            // End-of-list drop indicator when targeting after last item
+            if (draggingFrom.value != null && dropIndex.value == cellars.size && dropIndex.value != draggingFrom.value) {
+                Spacer(Modifier.fillMaxWidth().height(4.dp).background(MaterialTheme.colorScheme.primary))
+                Spacer(Modifier.height(8.dp))
             }
 
             // Add new cellar primary action: distinct filled tonal button

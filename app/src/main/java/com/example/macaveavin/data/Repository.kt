@@ -126,7 +126,9 @@ object Repository {
         if (fromIndex == toIndex) return
         val mutable = list.toMutableList()
         val item = mutable.removeAt(fromIndex)
-        val target = if (toIndex > fromIndex) toIndex - 1 else toIndex
+        // Insert at the desired final index. If moving downward to the end,
+        // allow appending by using size as the insertion index.
+        val target = minOf(toIndex, mutable.size)
         mutable.add(target, item)
         val prevActive = _activeIndex.value
         val newActive = when {
