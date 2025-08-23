@@ -98,8 +98,9 @@ object Repository {
     fun setConfig(newConfig: CellarConfig) {
         val idx = _activeIndex.value
         val current = _cellars.value[idx]
-        // Keep wines even if they temporarily fall out-of-bounds when resizing; they should not disappear
-        val updated = current.copy(config = newConfig, wines = current.wines)
+        // Migrate wines into the new bounds/enabled cells so they don't disappear from the UI
+        val migrated = migrateWinesForConfig(current.wines, newConfig)
+        val updated = current.copy(config = newConfig, wines = migrated)
         _cellars.value = _cellars.value.toMutableList().also { it[idx] = updated }
         syncActiveSnapshots()
     }
@@ -254,5 +255,61 @@ object Repository {
         if (row >= cfg.rows || col >= cfg.cols) return false
         val enabled = cfg.enabledCells
         return enabled?.contains(row to col) ?: true
+    }
+
+    // Repositions wines to fit within the new configuration bounds and enabled cells.
+    // Strategy:
+    // 1) Keep wines that are already valid and non-conflicting.
+    // 2) For out-of-bounds/disabled/conflicting wines, try the clamped position (min(old, max)).
+    // 3) If unavailable, scan forward row-major (then wrap) for the next free valid cell.
+    // 4) If there are more wines than available cells, keep the extras unchanged (they won't be visible).
+    private fun migrateWinesForConfig(wines: List<Wine>, newCfg: CellarConfig): List<Wine> {
+        // Build row-major list of valid cells for the new configuration
+        val validCells = buildList {
+            for (r in 0 until newCfg.rows) {
+                for (c in 0 until newCfg.cols) {
+                    val cell = r to c
+                    val enabledOk = newCfg.enabledCells?.contains(cell) ?: true
+                    if (enabledOk) add(cell)
+                }
+            }
+        }
+        val capacity = validCells.size
+        if (capacity == 0) return wines // nothing we can do
+        val indexOfCell = validCells.withIndex().associate { it.value to it.index }
+        val occupied = mutableSetOf<Pair<Int, Int>>()
+        val result = mutableListOf<Wine>()
+
+        for (w in wines) {
+            val desiredRow = w.row.coerceIn(0, newCfg.rows - 1)
+            val desiredCol = w.col.coerceIn(0, newCfg.cols - 1)
+            val desired = desiredRow to desiredCol
+            var target: Pair<Int, Int>? = null
+
+            if ((indexOfCell[desired] != null) && (desired !in occupied)) {
+                target = desired
+            } else {
+                val start = indexOfCell[desired] ?: 0
+                fun scan(from: Int, to: Int): Pair<Int, Int>? {
+                    var i = from
+                    while (i < to) {
+                        val cell = validCells[i]
+                        if (cell !in occupied) return cell
+                        i++
+                    }
+                    return null
+                }
+                target = scan(start, validCells.size) ?: scan(0, start)
+            }
+
+            if (target != null) {
+                occupied += target
+                result += w.copy(row = target.first, col = target.second)
+            } else {
+                // No available cell (more wines than capacity): keep as-is
+                result += w
+            }
+        }
+        return result
     }
 }

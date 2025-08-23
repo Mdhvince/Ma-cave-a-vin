@@ -26,6 +26,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,7 +57,15 @@ fun DetailsScreen(
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         TopAppBar(
             title = { Text("Fiche du vin") },
-            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Retour") } }
+            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Retour") } },
+            actions = {
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Filled.Edit, contentDescription = "Modifier")
+                }
+                IconButton(onClick = { showConfirm.value = true }) {
+                    Icon(Icons.Filled.Delete, contentDescription = "Supprimer")
+                }
+            }
         )
         Spacer(Modifier.height(16.dp))
         
@@ -220,10 +230,6 @@ fun DetailsScreen(
                 )
             }
         }
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = onEdit, modifier = Modifier.fillMaxWidth()) { Text("Modifier") }
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = { showConfirm.value = true }, modifier = Modifier.fillMaxWidth()) { Text("Supprimer") }
 
         if (showConfirm.value) {
             AlertDialog(

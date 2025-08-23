@@ -83,13 +83,43 @@ fun HomeScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header image only (title removed as requested)
-            Image(
-                painter = painterResource(id = R.drawable.ic_wine_glass),
-                contentDescription = "Illustration verre de vin",
-                modifier = Modifier.size(96.dp)
-            )
-            Spacer(Modifier.height(24.dp))
+            // Minimalist header and empty state (replaces large icon)
+            val isEmpty = cellars.isEmpty()
+            if (isEmpty) {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = "Organisez votre cave",
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "Créez votre première cave pour ajouter vos bouteilles.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                )
+                Spacer(Modifier.height(24.dp))
+                androidx.compose.material3.FilledTonalButton(
+                    onClick = onAddCellar,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .animateContentSize()
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "Créer une cave", style = MaterialTheme.typography.titleMedium)
+                }
+                Spacer(Modifier.height(16.dp))
+            } else {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                    Text(text = "Vos caves", style = MaterialTheme.typography.headlineSmall)
+                }
+                Spacer(Modifier.height(12.dp))
+            }
 
             // List: full-width rectangular items of existing caves
             cellars.forEachIndexed { index, cfg ->
@@ -197,17 +227,19 @@ fun HomeScreen(
                 Spacer(Modifier.height(8.dp))
             }
 
-            // Add new cellar primary action: distinct filled tonal button
-            androidx.compose.material3.FilledTonalButton(
-                onClick = onAddCellar,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .animateContentSize()
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(text = "Ajouter une cave", style = MaterialTheme.typography.titleMedium)
+            if (!isEmpty) {
+                // Add new cellar primary action: distinct filled tonal button
+                androidx.compose.material3.FilledTonalButton(
+                    onClick = onAddCellar,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .animateContentSize()
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "Ajouter une cave", style = MaterialTheme.typography.titleMedium)
+                }
             }
 
             if (onQuickAdd != null) {
