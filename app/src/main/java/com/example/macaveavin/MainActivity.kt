@@ -146,7 +146,7 @@ fun App() {
                     ) { backStackEntry ->
                         val isNew = backStackEntry.arguments?.getBoolean("isNew") ?: false
                         if (isNew) {
-                            var draftConfig by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(com.example.macaveavin.data.CellarConfig()) }
+                            var draftConfig by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(com.example.macaveavin.data.CellarConfig(name = "")) }
                             SetupScreen(
                                 config = draftConfig,
                                 onSetName = { draftConfig = draftConfig.copy(name = it) },

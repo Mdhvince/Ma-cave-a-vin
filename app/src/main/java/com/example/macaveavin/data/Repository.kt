@@ -63,6 +63,7 @@ object Repository {
     }
 
     fun addCellar(config: CellarConfig) {
+        if (config.name.isBlank()) return
         val nextIndex = _cellars.value.size
         val unique = ensureUniqueName(config.name)
         val newCellar = Cellar(config = config.copy(name = unique), wines = emptyList())

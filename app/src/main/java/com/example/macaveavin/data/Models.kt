@@ -5,7 +5,7 @@ import java.util.UUID
 // Simplified model: rectangular grid with optional sparse enabled cells.
 // When enabledCells is null, the entire rows x cols grid is considered enabled.
 data class CellarConfig(
-    val name: String = "Ma Cave",
+    val name: String = "Cave 1",
     val rows: Int = 4,
     val cols: Int = 4,
     val enabledCells: Set<Pair<Int, Int>>? = null

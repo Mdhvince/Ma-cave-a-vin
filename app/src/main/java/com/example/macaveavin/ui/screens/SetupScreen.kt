@@ -103,7 +103,8 @@ fun SetupScreen(
             }
             Button(
                 onClick = onContinue,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                enabled = config.name.isNotBlank()
             ) {
                 Text("Mise à jour", textAlign = TextAlign.Center)
             }
