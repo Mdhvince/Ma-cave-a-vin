@@ -42,6 +42,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.WineBar
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedTextField
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -52,10 +56,14 @@ fun HomeScreen(
     onQuickAdd: (() -> Unit)? = null,
     isRefreshing: Boolean = false,
     onRefresh: (() -> Unit)? = null,
-    onDeleteCellar: ((index: Int) -> Unit)? = null
+    onDeleteCellar: ((index: Int) -> Unit)? = null,
+    onRenameCellar: ((index: Int, newName: String) -> Unit)? = null
 ) {
     val haptics = LocalHapticFeedback.current
     val showConfirm = remember { mutableStateOf<Int?>(null) }
+    val showRename = remember { mutableStateOf<Int?>(null) }
+    val renameText = remember { mutableStateOf("") }
+    val expandedMenu = remember { mutableStateOf<Int?>(null) }
     val pullState = rememberSwipeRefreshState(isRefreshing)
 
     SwipeRefresh(
@@ -110,7 +118,35 @@ fun HomeScreen(
                             Icon(Icons.Filled.WineBar, contentDescription = null)
                             Text(text = cfg.name, style = MaterialTheme.typography.titleMedium)
                         }
-                        Icon(Icons.Filled.ChevronRight, contentDescription = null)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = {
+                                expandedMenu.value = index
+                                renameText.value = cfg.name
+                            }) {
+                                Icon(Icons.Filled.MoreVert, contentDescription = "Plus d'actions")
+                            }
+                            DropdownMenu(
+                                expanded = expandedMenu.value == index,
+                                onDismissRequest = { expandedMenu.value = null }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Renommer") },
+                                    onClick = {
+                                        expandedMenu.value = null
+                                        showRename.value = index
+                                        renameText.value = cfg.name
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Supprimer") },
+                                    onClick = {
+                                        expandedMenu.value = null
+                                        showConfirm.value = index
+                                    }
+                                )
+                            }
+                            Icon(Icons.Filled.ChevronRight, contentDescription = null)
+                        }
                     }
                 }
                 Spacer(Modifier.height(12.dp))
@@ -135,7 +171,7 @@ fun HomeScreen(
             }
         }
 
-        // Confirmation dialog
+        // Delete confirmation dialog
         val pending = showConfirm.value
         if (pending != null && onDeleteCellar != null) {
             androidx.compose.material3.AlertDialog(
@@ -151,6 +187,40 @@ fun HomeScreen(
                 },
                 title = { Text("Supprimer cette cave ?") },
                 text = { Text("Cette action est irréversible.") }
+            )
+        }
+
+        // Rename dialog
+        val renameIdx = showRename.value
+        if (renameIdx != null && onRenameCellar != null) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showRename.value = null },
+                confirmButton = {
+                    Button(onClick = {
+                        val newName = renameText.value.trim()
+                        if (newName.isNotEmpty()) {
+                            onRenameCellar.invoke(renameIdx, newName)
+                        }
+                        showRename.value = null
+                    }) { Text("Renommer") }
+                },
+                dismissButton = {
+                    Button(onClick = { showRename.value = null }) { Text("Annuler") }
+                },
+                title = { Text("Renommer la cave") },
+                text = {
+                    Column { 
+                        Text("Entrez le nouveau nom de la cave :")
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = renameText.value,
+                            onValueChange = { renameText.value = it },
+                            singleLine = true,
+                            label = { Text("Nom") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
             )
         }
     }

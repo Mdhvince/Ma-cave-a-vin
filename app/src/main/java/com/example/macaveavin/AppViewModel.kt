@@ -70,4 +70,6 @@ class AppViewModel : ViewModel() {
     fun addCellar(name: String? = null) = Repository.addCellar(name)
     fun addCellar(config: CellarConfig) = Repository.addCellar(config)
     fun deleteCellar(index: Int) = Repository.deleteCellar(index)
+    fun deleteActiveCellar() = Repository.deleteActiveCellar()
+    fun renameCellar(index: Int, name: String) = Repository.renameCellar(index, name)
 }

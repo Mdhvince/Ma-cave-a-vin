@@ -24,6 +24,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.macaveavin.data.CellarConfig
 import com.example.macaveavin.ui.HexagonShape
+import androidx.compose.material.icons.filled.Delete
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,8 +44,10 @@ fun SetupScreen(
     onSetRows: (Int) -> Unit,
     onSetCols: (Int) -> Unit,
     onContinue: () -> Unit,
-    onCancel: (() -> Unit)? = null
+    onCancel: (() -> Unit)? = null,
+    onDeleteCurrent: (() -> Unit)? = null
 ) {
+    val showDeleteConfirm = remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -56,6 +61,13 @@ fun SetupScreen(
             navigationIcon = {
                 if (onCancel != null) {
                     IconButton(onClick = onCancel) { Icon(Icons.Filled.ArrowBack, contentDescription = "Retour") }
+                }
+            },
+            actions = {
+                if (onDeleteCurrent != null) {
+                    IconButton(onClick = { showDeleteConfirm.value = true }) {
+                        Icon(Icons.Filled.Delete, contentDescription = "Supprimer la cave")
+                    }
                 }
             }
         )
@@ -109,5 +121,23 @@ fun SetupScreen(
                 Text("Mise à jour", textAlign = TextAlign.Center)
             }
         }
+    }
+
+    // Delete confirmation dialog for current cellar
+    if (showDeleteConfirm.value && onDeleteCurrent != null) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showDeleteConfirm.value = false },
+            confirmButton = {
+                Button(onClick = {
+                    showDeleteConfirm.value = false
+                    onDeleteCurrent.invoke()
+                }) { Text("Supprimer") }
+            },
+            dismissButton = {
+                Button(onClick = { showDeleteConfirm.value = false }) { Text("Annuler") }
+            },
+            title = { Text("Supprimer cette cave ?") },
+            text = { Text("Cette action est irréversible.") }
+        )
     }
 }

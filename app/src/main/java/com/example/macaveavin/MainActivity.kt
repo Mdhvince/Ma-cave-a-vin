@@ -115,7 +115,8 @@ fun App() {
                             },
                             isRefreshing = vm.isRefreshing.collectAsState().value,
                             onRefresh = { vm.refreshCellars() },
-                            onDeleteCellar = { idx -> vm.deleteCellar(idx) }
+                            onDeleteCellar = { idx -> vm.deleteCellar(idx) },
+                            onRenameCellar = { idx, newName -> vm.renameCellar(idx, newName) }
                         )
                     }
                     composable("cellar") {
@@ -166,7 +167,11 @@ fun App() {
                                 onSetRows = { r -> vm.setConfig(r, cfg2.cols) },
                                 onSetCols = { c -> vm.setConfig(cfg2.rows, c) },
                                 onContinue = { nav.popBackStack() },
-                                onCancel = { nav.popBackStack() }
+                                onCancel = { nav.popBackStack() },
+                                onDeleteCurrent = {
+                                    vm.deleteActiveCellar()
+                                    nav.popBackStack()
+                                }
                             )
                         }
                     }

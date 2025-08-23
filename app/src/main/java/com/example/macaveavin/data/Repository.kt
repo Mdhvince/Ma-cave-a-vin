@@ -106,6 +106,19 @@ object Repository {
         setConfig(_config.value.copy(name = unique))
     }
 
+    fun renameCellar(index: Int, name: String) {
+        if (index !in _cellars.value.indices) return
+        val unique = ensureUniqueName(name, ignoreIndex = index)
+        val current = _cellars.value[index]
+        val updated = current.copy(config = current.config.copy(name = unique))
+        _cellars.value = _cellars.value.toMutableList().also { it[index] = updated }
+        syncActiveSnapshots()
+    }
+
+    fun deleteActiveCellar() {
+        deleteCellar(_activeIndex.value)
+    }
+
     fun addCompartment() {
         val cfg = _config.value
         val baseSet: Set<Pair<Int, Int>> = cfg.enabledCells ?: buildSet {
