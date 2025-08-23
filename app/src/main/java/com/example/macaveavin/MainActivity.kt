@@ -55,6 +55,8 @@ import androidx.compose.animation.core.tween
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Initialize simple persistence
+        com.example.macaveavin.data.Repository.init(applicationContext)
         enableEdgeToEdge()
         setContent { App() }
     }

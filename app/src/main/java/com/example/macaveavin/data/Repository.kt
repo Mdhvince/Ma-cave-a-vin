@@ -1,10 +1,176 @@
 package com.example.macaveavin.data
 
+import android.content.Context
+import android.net.Uri
+import android.webkit.MimeTypeMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.io.File
+import java.io.FileOutputStream
+import org.json.JSONArray
+import org.json.JSONObject
 
 object Repository {
+    // File-based simple persistence
+    private var storageFile: File? = null
+    private var appContext: Context? = null
+
+    fun init(context: Context) {
+        appContext = context.applicationContext
+        storageFile = File(context.filesDir, "cellars.json")
+        loadFromDisk()
+        syncActiveSnapshots()
+    }
+
+    private fun loadFromDisk() {
+        val file = storageFile ?: return
+        if (!file.exists()) return
+        runCatching {
+            val text = file.readText()
+            val arr = JSONArray(text)
+            val loaded = mutableListOf<Cellar>()
+            for (i in 0 until arr.length()) {
+                val obj = arr.getJSONObject(i)
+                val cfgObj = obj.getJSONObject("config")
+                val name = cfgObj.optString("name", "Cave 1")
+                val rows = cfgObj.optInt("rows", 4)
+                val cols = cfgObj.optInt("cols", 4)
+                val enabledCellsArray = cfgObj.optJSONArray("enabledCells")
+                val enabledCells: Set<Pair<Int, Int>>? = if (enabledCellsArray != null) {
+                    buildSet {
+                        for (j in 0 until enabledCellsArray.length()) {
+                            val p = enabledCellsArray.getJSONArray(j)
+                            add(p.getInt(0) to p.getInt(1))
+                        }
+                    }
+                } else null
+                val cfg = CellarConfig(name = name, rows = rows, cols = cols, enabledCells = enabledCells)
+                val winesArray = obj.optJSONArray("wines") ?: JSONArray()
+                val wines = mutableListOf<Wine>()
+                for (k in 0 until winesArray.length()) {
+                    val w = winesArray.getJSONObject(k)
+                    val typeStr = w.optString("type", WineType.RED.name)
+                    val type = runCatching { WineType.valueOf(typeStr) }.getOrElse { WineType.RED }
+                    wines += Wine(
+                        id = w.optString("id"),
+                        name = w.optString("name"),
+                        vintage = w.optString("vintage").takeIf { it.isNotBlank() },
+                        comment = w.optString("comment").takeIf { it.isNotBlank() },
+                        rating = if (w.has("rating") && !w.isNull("rating")) w.getDouble("rating").toFloat() else null,
+                        type = type,
+                        photoUri = w.optString("photoUri").takeIf { it.isNotBlank() },
+                        row = w.optInt("row"),
+                        col = w.optInt("col"),
+                        createdAt = if (w.has("createdAt")) w.optLong("createdAt") else System.currentTimeMillis()
+                    )
+                }
+                loaded += Cellar(config = cfg, wines = wines)
+            }
+            if (loaded.isNotEmpty()) {
+                _cellars.value = loaded
+                _activeIndex.value = 0
+            }
+        }.onFailure {
+            // ignore parse errors
+        }
+    }
+
+    private fun persistSafe() {
+        runCatching { saveToDisk() }
+    }
+
+    // region Photo persistence helpers
+    private fun photosDir(): File? {
+        val ctx = appContext ?: return null
+        val dir = File(ctx.filesDir, "photos")
+        if (!dir.exists()) dir.mkdirs()
+        return dir
+    }
+
+    private fun isManagedPhoto(pathOrUri: String): Boolean {
+        val dir = photosDir() ?: return false
+        return pathOrUri.startsWith(dir.absolutePath)
+    }
+
+    private fun extensionForMime(mime: String?): String {
+        if (mime == null) return ".jpg"
+        val ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mime)
+        return if (!ext.isNullOrBlank()) ".${ext}" else when {
+            mime.contains("png") -> ".png"
+            mime.contains("webp") -> ".webp"
+            else -> ".jpg"
+        }
+    }
+
+    private fun persistPhotoForWine(wineId: String, src: String?): String? {
+        if (src.isNullOrBlank()) return null
+        val ctx = appContext ?: return src // cannot persist without context; keep original
+        if (isManagedPhoto(src)) return src
+        val dir = photosDir() ?: return src
+        return runCatching {
+            val uri = Uri.parse(src)
+            val mime = ctx.contentResolver.getType(uri)
+            val ext = extensionForMime(mime)
+            val file = File(dir, "${wineId}_${System.currentTimeMillis()}${ext}")
+            ctx.contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(file).use { output ->
+                    input.copyTo(output)
+                }
+            } ?: throw IllegalStateException("Unable to open input stream for $src")
+            file.absolutePath
+        }.getOrElse { src }
+    }
+
+    private fun deleteManagedPhotoIfAny(path: String?) {
+        if (path.isNullOrBlank()) return
+        if (!isManagedPhoto(path)) return
+        runCatching { File(path).takeIf { it.exists() }?.delete() }
+    }
+    // endregion
+
+    private fun saveToDisk() {
+        val file = storageFile ?: return
+        val list = _cellars.value
+        val arr = JSONArray()
+        list.forEach { cellar ->
+            val cfg = JSONObject().apply {
+                put("name", cellar.config.name)
+                put("rows", cellar.config.rows)
+                put("cols", cellar.config.cols)
+                val enabled = cellar.config.enabledCells
+                if (enabled != null) {
+                    val eArr = JSONArray()
+                    enabled.forEach { (r, c) ->
+                        eArr.put(JSONArray().put(r).put(c))
+                    }
+                    put("enabledCells", eArr)
+                }
+            }
+            val winesArr = JSONArray()
+            cellar.wines.forEach { w ->
+                winesArr.put(JSONObject().apply {
+                    put("id", w.id)
+                    put("name", w.name)
+                    if (w.vintage != null) put("vintage", w.vintage)
+                    if (w.comment != null) put("comment", w.comment)
+                    if (w.rating != null) put("rating", w.rating)
+                    put("type", w.type.name)
+                    if (w.photoUri != null) put("photoUri", w.photoUri)
+                    put("row", w.row)
+                    put("col", w.col)
+                    put("createdAt", w.createdAt)
+                })
+            }
+            val obj = JSONObject().apply {
+                put("config", cfg)
+                put("wines", winesArr)
+            }
+            arr.put(obj)
+        }
+        file.writeText(arr.toString())
+    }
+
     // Multiple cellars support
     private var _cellars = MutableStateFlow(listOf(Cellar()))
     private var _activeIndex = MutableStateFlow(0)
@@ -47,6 +213,8 @@ object Repository {
         _wines.value = active.wines
         _allConfigs.value = _cellars.value.map { it.config }
         _allCounts.value = _cellars.value.map { it.wines.size }
+        // Persist snapshot (best-effort)
+        persistSafe()
     }
 
     fun setActiveCellar(index: Int) {
@@ -184,9 +352,12 @@ object Repository {
         val current = _cellars.value[idx]
         val list = current.wines
         if (!isInBounds(wine.row, wine.col, _config.value)) return
+        // Persist photo if provided
+        val persistedPhoto = persistPhotoForWine(wine.id, wine.photoUri)
+        val toInsert = wine.copy(photoUri = persistedPhoto)
         val newList = if (list.any { it.row == wine.row && it.col == wine.col }) {
-            list.map { if (it.row == wine.row && it.col == wine.col) wine.copy(id = it.id, createdAt = it.createdAt) else it }
-        } else list + wine
+            list.map { if (it.row == wine.row && it.col == wine.col) toInsert.copy(id = it.id, createdAt = it.createdAt) else it }
+        } else list + toInsert
         _cellars.value = _cellars.value.toMutableList().also { it[idx] = current.copy(wines = newList) }
         syncActiveSnapshots()
     }
@@ -194,7 +365,15 @@ object Repository {
     fun updateWine(updated: Wine) {
         val idx = _activeIndex.value
         val current = _cellars.value[idx]
-        val newList = current.wines.map { if (it.id == updated.id) updated else it }
+        val old = current.wines.find { it.id == updated.id }
+        // If photo changed, persist new and delete old managed
+        val newPhoto = if (updated.photoUri != old?.photoUri) {
+            val persisted = persistPhotoForWine(updated.id, updated.photoUri)
+            if (persisted != old?.photoUri) deleteManagedPhotoIfAny(old?.photoUri)
+            persisted
+        } else updated.photoUri
+        val patched = updated.copy(photoUri = newPhoto)
+        val newList = current.wines.map { if (it.id == patched.id) patched else it }
         _cellars.value = _cellars.value.toMutableList().also { it[idx] = current.copy(wines = newList) }
         syncActiveSnapshots()
     }
@@ -202,6 +381,9 @@ object Repository {
     fun deleteWine(id: String) {
         val idx = _activeIndex.value
         val current = _cellars.value[idx]
+        val target = current.wines.find { it.id == id }
+        // Delete photo file if we manage it
+        deleteManagedPhotoIfAny(target?.photoUri)
         val newList = current.wines.filterNot { it.id == id }
         _cellars.value = _cellars.value.toMutableList().also { it[idx] = current.copy(wines = newList) }
         syncActiveSnapshots()
