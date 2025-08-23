@@ -90,7 +90,7 @@ fun App() {
                             isSelected = { route -> isRouteSelected(current, route) },
                             onItemClick = { route ->
                                 if (route == "quickAdd") {
-                                    nav.navigate("addEdit?row=0&col=0&select=true")
+                                    nav.navigate("addEdit?row=0&col=0&select=true&autoCamera=true")
                                 } else if (route == "home") {
                                     nav.navigate("home") {
                                         popUpTo(nav.graph.findStartDestination().id) { inclusive = true }
@@ -183,18 +183,20 @@ fun App() {
                         }
                     }
                     composable(
-                        route = "addEdit?row={row}&col={col}&id={id}&select={select}",
+                        route = "addEdit?row={row}&col={col}&id={id}&select={select}&autoCamera={autoCamera}",
                         arguments = listOf(
                             navArgument("row") { type = NavType.IntType; defaultValue = 0 },
                             navArgument("col") { type = NavType.IntType; defaultValue = 0 },
                             navArgument("id") { type = NavType.StringType; nullable = true; defaultValue = null },
-                            navArgument("select") { type = NavType.BoolType; defaultValue = false }
+                            navArgument("select") { type = NavType.BoolType; defaultValue = false },
+                            navArgument("autoCamera") { type = NavType.BoolType; defaultValue = false }
                         )
                     ) { backStackEntry ->
                         val row = backStackEntry.arguments?.getInt("row") ?: 0
                         val col = backStackEntry.arguments?.getInt("col") ?: 0
                         val id = backStackEntry.arguments?.getString("id")
                         val select = backStackEntry.arguments?.getBoolean("select") ?: false
+                        val autoCamera = backStackEntry.arguments?.getBoolean("autoCamera") ?: false
                         val wine = id?.let { vm.getWineById(it) }
                         val configs by vm.allConfigs.collectAsState()
                         val activeCfg by vm.config.collectAsState()
@@ -210,7 +212,8 @@ fun App() {
                             onCancel = { nav.popBackStack() },
                             allCellars = if (select) configs else null,
                             activeCellarIndex = activeIdx,
-                            onSelectCellar = { idx -> vm.setActiveCellar(idx) }
+                            onSelectCellar = { idx -> vm.setActiveCellar(idx) },
+                            autoOpenCamera = autoCamera
                         )
                     }
                     composable(

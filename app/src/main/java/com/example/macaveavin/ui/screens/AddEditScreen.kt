@@ -37,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -59,7 +60,8 @@ fun AddEditScreen(
     onCancel: () -> Unit,
     allCellars: List<com.example.macaveavin.data.CellarConfig>? = null,
     activeCellarIndex: Int = 0,
-    onSelectCellar: ((Int) -> Unit)? = null
+    onSelectCellar: ((Int) -> Unit)? = null,
+    autoOpenCamera: Boolean = false
 ) {
     val context = LocalContext.current
     var photoUri by remember(initialWine) { mutableStateOf(initialWine?.photoUri?.let(Uri::parse)) }
@@ -79,6 +81,17 @@ fun AddEditScreen(
             photoUri = cameraImageUri
         } else {
             cameraImageUri = null
+        }
+    }
+
+    // Auto-open camera once when requested from quick action
+    var hasAutoLaunched by remember { mutableStateOf(false) }
+    LaunchedEffect(autoOpenCamera) {
+        if (autoOpenCamera && !hasAutoLaunched) {
+            val uri = createImageUri(context)
+            cameraImageUri = uri
+            hasAutoLaunched = true
+            takePicture.launch(uri)
         }
     }
 
