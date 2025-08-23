@@ -1,7 +1,7 @@
 package com.example.macaveavin.ui.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,8 +28,6 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,13 +37,17 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.WineBar
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.platform.LocalDensity
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -57,9 +59,9 @@ fun HomeScreen(
     isRefreshing: Boolean = false,
     onRefresh: (() -> Unit)? = null,
     onDeleteCellar: ((index: Int) -> Unit)? = null,
-    onRenameCellar: ((index: Int, newName: String) -> Unit)? = null
+    onRenameCellar: ((index: Int, newName: String) -> Unit)? = null,
+    onMoveCellar: ((from: Int, to: Int) -> Unit)? = null
 ) {
-    val haptics = LocalHapticFeedback.current
     val showConfirm = remember { mutableStateOf<Int?>(null) }
     val showRename = remember { mutableStateOf<Int?>(null) }
     val renameText = remember { mutableStateOf("") }
@@ -98,13 +100,7 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .height(72.dp)
                         .animateContentSize()
-                        .combinedClickable(
-                            onClick = { onOpenCellar(index) },
-                            onLongClick = {
-                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showConfirm.value = index
-                            }
-                        ),
+                        .clickable { onOpenCellar(index) },
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Row(
@@ -115,6 +111,24 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            val density = LocalDensity.current
+                            val slotPx = with(density) { (72.dp + 12.dp).toPx() }
+                            Icon(
+                                Icons.Filled.DragHandle,
+                                contentDescription = "Réorganiser",
+                                modifier = Modifier.pointerInput(index, cellars.size) {
+                                    var totalDy = 0f
+                                    detectDragGestures(
+                                        onDragStart = { totalDy = 0f },
+                                        onDrag = { _, dragAmount -> totalDy += dragAmount.y },
+                                        onDragEnd = {
+                                            val moved = (totalDy / slotPx).roundToInt()
+                                            val target = (index + moved).coerceIn(0, cellars.lastIndex)
+                                            if (target != index) onMoveCellar?.invoke(index, target)
+                                        }
+                                    )
+                                }
+                            )
                             Icon(Icons.Filled.WineBar, contentDescription = null)
                             Text(text = cfg.name, style = MaterialTheme.typography.titleMedium)
                         }
@@ -145,7 +159,6 @@ fun HomeScreen(
                                     }
                                 )
                             }
-                            Icon(Icons.Filled.ChevronRight, contentDescription = null)
                         }
                     }
                 }

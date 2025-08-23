@@ -116,7 +116,8 @@ fun App() {
                             isRefreshing = vm.isRefreshing.collectAsState().value,
                             onRefresh = { vm.refreshCellars() },
                             onDeleteCellar = { idx -> vm.deleteCellar(idx) },
-                            onRenameCellar = { idx, newName -> vm.renameCellar(idx, newName) }
+                            onRenameCellar = { idx, newName -> vm.renameCellar(idx, newName) },
+                            onMoveCellar = { from, to -> vm.moveCellar(from, to) }
                         )
                     }
                     composable("cellar") {

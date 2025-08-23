@@ -72,4 +72,5 @@ class AppViewModel : ViewModel() {
     fun deleteCellar(index: Int) = Repository.deleteCellar(index)
     fun deleteActiveCellar() = Repository.deleteActiveCellar()
     fun renameCellar(index: Int, name: String) = Repository.renameCellar(index, name)
+    fun moveCellar(from: Int, to: Int) = Repository.moveCellar(from, to)
 }

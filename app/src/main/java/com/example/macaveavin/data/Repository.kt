@@ -119,6 +119,27 @@ object Repository {
         deleteCellar(_activeIndex.value)
     }
 
+    fun moveCellar(fromIndex: Int, toIndex: Int) {
+        val list = _cellars.value
+        if (list.isEmpty()) return
+        if (fromIndex !in list.indices || toIndex !in list.indices) return
+        if (fromIndex == toIndex) return
+        val mutable = list.toMutableList()
+        val item = mutable.removeAt(fromIndex)
+        val target = if (toIndex > fromIndex) toIndex - 1 else toIndex
+        mutable.add(target, item)
+        val prevActive = _activeIndex.value
+        val newActive = when {
+            prevActive == fromIndex -> toIndex
+            fromIndex < prevActive && prevActive <= toIndex -> prevActive - 1
+            toIndex <= prevActive && prevActive < fromIndex -> prevActive + 1
+            else -> prevActive
+        }.coerceIn(0, mutable.lastIndex)
+        _cellars.value = mutable
+        _activeIndex.value = newActive
+        syncActiveSnapshots()
+    }
+
     fun addCompartment() {
         val cfg = _config.value
         val baseSet: Set<Pair<Int, Int>> = cfg.enabledCells ?: buildSet {
