@@ -20,6 +20,9 @@ object Repository {
     private val _allConfigs = MutableStateFlow(_cellars.value.map { it.config })
     val allConfigs: StateFlow<List<CellarConfig>> = _allConfigs.asStateFlow()
 
+    private val _allCounts = MutableStateFlow(_cellars.value.map { it.wines.size })
+    val allCounts: StateFlow<List<Int>> = _allCounts.asStateFlow()
+
     private fun ensureUniqueName(desired: String, ignoreIndex: Int? = null): String {
         val existing = _cellars.value.mapIndexed { idx, c -> idx to c.config.name }
         fun exists(name: String): Boolean = existing.any { (i, n) -> (ignoreIndex == null || i != ignoreIndex) && n.equals(name, ignoreCase = true) }
@@ -43,6 +46,7 @@ object Repository {
         _config.value = active.config
         _wines.value = active.wines
         _allConfigs.value = _cellars.value.map { it.config }
+        _allCounts.value = _cellars.value.map { it.wines.size }
     }
 
     fun setActiveCellar(index: Int) {

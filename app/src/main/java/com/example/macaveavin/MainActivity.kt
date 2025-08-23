@@ -107,8 +107,10 @@ fun App() {
                 NavHost(navController = nav, startDestination = "home", modifier = Modifier.padding(paddingValues)) {
                     composable("home") {
                         val configs by vm.allConfigs.collectAsState()
+                        val counts by vm.allCounts.collectAsState()
                         HomeScreen(
                             cellars = configs,
+                            wineCounts = counts,
                             onOpenCellar = { index -> vm.setActiveCellar(index); nav.navigate("cellar") },
                             onAddCellar = {
                                 nav.navigate("setup?isNew=true")

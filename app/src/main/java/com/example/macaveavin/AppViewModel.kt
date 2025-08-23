@@ -24,6 +24,9 @@ class AppViewModel : ViewModel() {
     val allConfigs: StateFlow<List<CellarConfig>> = Repository.allConfigs
         .stateIn(viewModelScope, SharingStarted.Eagerly, Repository.allConfigs.value)
 
+    val allCounts: StateFlow<List<Int>> = Repository.allCounts
+        .stateIn(viewModelScope, SharingStarted.Eagerly, Repository.allCounts.value)
+
     val query = MutableStateFlow("")
 
     // Debounced search for performance

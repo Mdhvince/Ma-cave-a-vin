@@ -54,6 +54,7 @@ import kotlin.math.roundToInt
 @Composable
 fun HomeScreen(
     cellars: List<CellarConfig>,
+    wineCounts: List<Int> = emptyList(),
     onOpenCellar: (index: Int) -> Unit,
     onAddCellar: () -> Unit,
     onQuickAdd: (() -> Unit)? = null,
@@ -152,7 +153,12 @@ fun HomeScreen(
                                     )
                                 }
                             )
-                            Text(text = cfg.name, style = MaterialTheme.typography.titleMedium)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                val count = wineCounts.getOrNull(index) ?: 0
+                                Text(text = "${cfg.name} ($count ", style = MaterialTheme.typography.titleMedium)
+                                Icon(Icons.Filled.WineBar, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Text(text = ")", style = MaterialTheme.typography.titleMedium)
+                            }
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(onClick = {
