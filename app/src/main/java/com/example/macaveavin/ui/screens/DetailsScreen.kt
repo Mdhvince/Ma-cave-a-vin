@@ -1,11 +1,8 @@
 package com.example.macaveavin.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,19 +19,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
@@ -50,8 +43,6 @@ fun DetailsScreen(
     onMove: (row: Int, col: Int) -> Unit,
     onDelete: () -> Unit
 ) {
-    val rowState = remember(wine.row) { mutableIntStateOf(wine.row + 1) }
-    val colState = remember(wine.col) { mutableIntStateOf(wine.col + 1) }
     val showConfirm = remember { mutableStateOf(false) }
     val haptics = LocalHapticFeedback.current
 
@@ -108,32 +99,6 @@ fun DetailsScreen(
         }
         Spacer(Modifier.height(16.dp))
         Button(onClick = onEdit, modifier = Modifier.fillMaxWidth()) { Text("Modifier") }
-        Spacer(Modifier.height(16.dp))
-        Text("Déplacer vers…")
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-                value = rowState.intValue.toString(),
-                onValueChange = { s ->
-                    val v = s.filter { it.isDigit() }.toIntOrNull()
-                    if (v != null) rowState.intValue = maxOf(1, v)
-                },
-                label = { Text("Rangée") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.weight(1f)
-            )
-            OutlinedTextField(
-                value = colState.intValue.toString(),
-                onValueChange = { s ->
-                    val v = s.filter { it.isDigit() }.toIntOrNull()
-                    if (v != null) colState.intValue = maxOf(1, v)
-                },
-                label = { Text("Colonne") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.weight(1f)
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-        Button(onClick = { onMove(maxOf(0, rowState.intValue - 1), maxOf(0, colState.intValue - 1)) }, modifier = Modifier.fillMaxWidth()) { Text("Déplacer") }
         Spacer(Modifier.height(16.dp))
         Button(onClick = { showConfirm.value = true }, modifier = Modifier.fillMaxWidth()) { Text("Supprimer") }
 
