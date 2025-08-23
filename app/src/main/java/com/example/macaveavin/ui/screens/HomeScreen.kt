@@ -21,6 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,6 +68,8 @@ fun HomeScreen(
     val renameText = remember { mutableStateOf("") }
     val expandedMenu = remember { mutableStateOf<Int?>(null) }
     val pullState = rememberSwipeRefreshState(isRefreshing)
+    val draggingFrom = remember { mutableStateOf<Int?>(null) }
+    val dropIndex = remember { mutableStateOf<Int?>(null) }
 
     SwipeRefresh(
         state = pullState,
@@ -79,13 +82,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header: App title and wine glass icon
-            Text(
-                text = "Ma Cave à Vin",
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center
-            )
-            Spacer(Modifier.height(16.dp))
+            // Header image only (title removed as requested)
             Image(
                 painter = painterResource(id = R.drawable.ic_wine_glass),
                 contentDescription = "Illustration verre de vin",
@@ -95,6 +92,10 @@ fun HomeScreen(
 
             // List: full-width rectangular items of existing caves
             cellars.forEachIndexed { index, cfg ->
+                if (draggingFrom.value != null && dropIndex.value == index && dropIndex.value != draggingFrom.value) {
+                    Spacer(Modifier.fillMaxWidth().height(4.dp).background(MaterialTheme.colorScheme.primary))
+                    Spacer(Modifier.height(8.dp))
+                }
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -119,17 +120,34 @@ fun HomeScreen(
                                 modifier = Modifier.pointerInput(index, cellars.size) {
                                     var totalDy = 0f
                                     detectDragGestures(
-                                        onDragStart = { totalDy = 0f },
-                                        onDrag = { _, dragAmount -> totalDy += dragAmount.y },
-                                        onDragEnd = {
+                                        onDragStart = {
+                                            totalDy = 0f
+                                            draggingFrom.value = index
+                                            dropIndex.value = index
+                                        },
+                                        onDrag = { change, dragAmount ->
+                                            totalDy += dragAmount.y
                                             val moved = (totalDy / slotPx).roundToInt()
                                             val target = (index + moved).coerceIn(0, cellars.lastIndex)
-                                            if (target != index) onMoveCellar?.invoke(index, target)
+                                            dropIndex.value = target
+                                            change.consume()
+                                        },
+                                        onDragCancel = {
+                                            draggingFrom.value = null
+                                            dropIndex.value = null
+                                        },
+                                        onDragEnd = {
+                                            val from = draggingFrom.value
+                                            val target = dropIndex.value
+                                            if (from != null && target != null && target != from) {
+                                                onMoveCellar?.invoke(from, target)
+                                            }
+                                            draggingFrom.value = null
+                                            dropIndex.value = null
                                         }
                                     )
                                 }
                             )
-                            Icon(Icons.Filled.WineBar, contentDescription = null)
                             Text(text = cfg.name, style = MaterialTheme.typography.titleMedium)
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
