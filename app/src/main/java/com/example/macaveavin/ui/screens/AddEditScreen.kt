@@ -19,6 +19,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.res.stringResource
@@ -54,7 +56,10 @@ fun AddEditScreen(
     initialCol: Int,
     initialWine: Wine?,
     onSave: (Wine) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    allCellars: List<com.example.macaveavin.data.CellarConfig>? = null,
+    activeCellarIndex: Int = 0,
+    onSelectCellar: ((Int) -> Unit)? = null
 ) {
     val context = LocalContext.current
     var photoUri by remember(initialWine) { mutableStateOf(initialWine?.photoUri?.let(Uri::parse)) }
@@ -74,6 +79,20 @@ fun AddEditScreen(
             photoUri = cameraImageUri
         } else {
             cameraImageUri = null
+        }
+    }
+
+    // Selection state for optional quick add flow
+    val hasSelection = allCellars != null && allCellars.isNotEmpty()
+    var selectedCellarIndex by remember(allCellars, activeCellarIndex) { mutableStateOf(activeCellarIndex.coerceIn(0, (allCellars?.lastIndex ?: 0))) }
+    val currentConfig = if (hasSelection) allCellars!![selectedCellarIndex] else null
+    var selRow by remember(initialWine, initialRow, currentConfig) { mutableStateOf(initialWine?.row ?: initialRow) }
+    var selCol by remember(initialWine, initialCol, currentConfig) { mutableStateOf(initialWine?.col ?: initialCol) }
+
+    fun clampPosition() {
+        currentConfig?.let { cfg ->
+            selRow = selRow.coerceIn(0, (cfg.rows - 1).coerceAtLeast(0))
+            selCol = selCol.coerceIn(0, (cfg.cols - 1).coerceAtLeast(0))
         }
     }
 
@@ -146,6 +165,48 @@ fun AddEditScreen(
             )
         }
         Spacer(Modifier.height(8.dp))
+        if (hasSelection) {
+            Text("Cave et emplacement")
+            Spacer(Modifier.height(8.dp))
+            var cellarMenuExpanded by remember { mutableStateOf(false) }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = { cellarMenuExpanded = true }) {
+                    Text(currentConfig?.name ?: "")
+                }
+                DropdownMenu(expanded = cellarMenuExpanded, onDismissRequest = { cellarMenuExpanded = false }) {
+                    allCellars!!.forEachIndexed { idx, cfg ->
+                        DropdownMenuItem(text = { Text(cfg.name) }, onClick = {
+                            selectedCellarIndex = idx
+                            onSelectCellar?.invoke(idx)
+                            clampPosition()
+                            cellarMenuExpanded = false
+                        })
+                    }
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = (selRow + 1).toString(),
+                    onValueChange = { v ->
+                        val n = v.filter { it.isDigit() }.toIntOrNull()
+                        if (n != null) { selRow = (n - 1).coerceAtLeast(0); clampPosition() }
+                    },
+                    label = { Text("Ligne (1-${currentConfig?.rows ?: 1})") },
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedTextField(
+                    value = (selCol + 1).toString(),
+                    onValueChange = { v ->
+                        val n = v.filter { it.isDigit() }.toIntOrNull()
+                        if (n != null) { selCol = (n - 1).coerceAtLeast(0); clampPosition() }
+                    },
+                    label = { Text("Colonne (1-${currentConfig?.cols ?: 1})") },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+        Spacer(Modifier.height(8.dp))
         OutlinedTextField(value = comment, onValueChange = { comment = it }, label = { Text("Commentaire") }, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(8.dp))
         Text("Note")
@@ -163,8 +224,8 @@ fun AddEditScreen(
                         rating = if (rating <= 0f) null else rating,
                         type = type,
                         photoUri = photoUri?.toString(),
-                        row = initialWine?.row ?: initialRow,
-                        col = initialWine?.col ?: initialCol,
+                        row = initialWine?.row ?: if (hasSelection) selRow else initialRow,
+                        col = initialWine?.col ?: if (hasSelection) selCol else initialCol,
                         createdAt = initialWine?.createdAt ?: System.currentTimeMillis()
                     )
                     onSave(wine)

@@ -155,9 +155,7 @@ fun HomeScreen(
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 val count = wineCounts.getOrNull(index) ?: 0
-                                Text(text = "${cfg.name} ($count ", style = MaterialTheme.typography.titleMedium)
-                                Icon(Icons.Filled.WineBar, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Text(text = ")", style = MaterialTheme.typography.titleMedium)
+                                Text(text = "${cfg.name} ($count)", style = MaterialTheme.typography.titleMedium)
                             }
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
