@@ -1,7 +1,6 @@
 package com.example.macaveavin.ui.screens
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -16,6 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.res.stringResource
+import androidx.core.content.FileProvider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -33,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.macaveavin.data.Wine
 import java.io.File
-import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -58,36 +64,35 @@ fun AddEditScreen(
         if (uri != null) photoUri = uri
     }
 
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
-        if (bitmap != null) {
-            photoUri = saveBitmapToCache(context, bitmap)
+    var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
+    val takePicture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            photoUri = cameraImageUri
+        } else {
+            cameraImageUri = null
         }
     }
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         TopAppBar(title = { Text(if (initialWine == null) "Ajouter une bouteille" else "Modifier la bouteille") })
         Spacer(Modifier.height(12.dp))
-        // Single modern photo action with dropdown options
-        run {
-            var expanded by remember { mutableStateOf(false) }
-            Button(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
-                Text(if (photoUri == null) "Ajouter une photo" else "Changer la photo")
+        // Direct actions: fewer taps, better UX
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = {
+                photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            }, modifier = Modifier.weight(1f)) {
+                Icon(Icons.Filled.PhotoLibrary, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(id = com.example.macaveavin.R.string.gallery))
             }
-            androidx.compose.material3.DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                androidx.compose.material3.DropdownMenuItem(
-                    text = { Text("Prendre une photo") },
-                    onClick = {
-                        expanded = false
-                        cameraLauncher.launch(null)
-                    }
-                )
-                androidx.compose.material3.DropdownMenuItem(
-                    text = { Text("Choisir depuis la galerie") },
-                    onClick = {
-                        expanded = false
-                        photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    }
-                )
+            Button(onClick = {
+                val uri = createImageUri(context)
+                cameraImageUri = uri
+                takePicture.launch(uri)
+            }, modifier = Modifier.weight(1f)) {
+                Icon(Icons.Filled.PhotoCamera, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(id = com.example.macaveavin.R.string.camera))
             }
         }
         Spacer(Modifier.height(12.dp))
@@ -95,7 +100,14 @@ fun AddEditScreen(
             Image(
                 painter = rememberAsyncImagePainter(photoUri),
                 contentDescription = "Photo de l'étiquette",
-                modifier = Modifier.fillMaxWidth().height(220.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .clickable {
+                        photoPicker.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
                 contentScale = ContentScale.Crop
             )
         }
@@ -134,12 +146,9 @@ fun AddEditScreen(
     }
 }
 
-private fun saveBitmapToCache(context: Context, bitmap: Bitmap): Uri {
+private fun createImageUri(context: Context): Uri {
     val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
     val fileName = "photo_$timeStamp.jpg"
     val file = File(context.cacheDir, fileName)
-    FileOutputStream(file).use { out ->
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
-    }
-    return Uri.fromFile(file)
+    return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
 }

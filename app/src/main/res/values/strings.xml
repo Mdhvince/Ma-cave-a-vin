@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Ma cave a vin</string>
+    <string name="gallery">Galerie</string>
+    <string name="camera">Caméra</string>
+    <string name="add_photo">Ajouter une photo</string>
+    <string name="change_photo">Changer la photo</string>
 </resources>
