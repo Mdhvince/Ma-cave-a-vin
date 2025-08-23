@@ -45,6 +45,7 @@ import androidx.compose.animation.animateContentSize
 import coil.compose.rememberAsyncImagePainter
 import com.example.macaveavin.data.CellarConfig
 import com.example.macaveavin.data.Wine
+import com.example.macaveavin.data.WineType
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import com.example.macaveavin.ui.HexagonShape
 import androidx.compose.foundation.verticalScroll
@@ -93,7 +94,7 @@ fun CellarScreen(
                         }
                     }
                 },
-                actions = { TextButton(onClick = onOpenSetup) { Text("Paramètres") } }
+                actions = { IconButton(onClick = onOpenSetup) { Icon(Icons.Filled.Settings, contentDescription = "Paramètres") } }
             )
         }
         Column(Modifier
@@ -189,15 +190,22 @@ fun CellarScreen(
                                     .weight(1f)
                                     .aspectRatio(1f)
                                     .let { base ->
+                                        val typeColor = when (wine?.type) {
+                                            WineType.RED -> Color(0xFFB71C1C)
+                                            WineType.WHITE -> Color(0xFFFDD835)
+                                            WineType.ROSE -> Color(0xFFF06292)
+                                            WineType.SPARKLING -> Color(0xFF80DEEA)
+                                            WineType.OTHER, null -> MaterialTheme.colorScheme.primary
+                                        }
                                         val targetBorderColor = when {
                                             isTarget -> Color(0xFF00C853)
-                                            wine != null -> MaterialTheme.colorScheme.primary
+                                            wine != null -> typeColor
                                             enabled -> MaterialTheme.colorScheme.outline
                                             else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                                         }
                                         val borderColor by animateColorAsState(targetValue = targetBorderColor, label = "cellBorder")
                                         val bg = when {
-                                            wine != null -> base
+                                            wine != null -> base.background(color = typeColor.copy(alpha = 0.15f), shape = HexagonShape())
                                             enabled -> base.background(
                                                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
                                                 shape = HexagonShape()

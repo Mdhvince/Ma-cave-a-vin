@@ -28,6 +28,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import com.example.macaveavin.ui.StarRating
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.macaveavin.data.Wine
+import com.example.macaveavin.data.WineType
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -59,6 +62,7 @@ fun AddEditScreen(
     var vintage by remember(initialWine) { mutableStateOf(initialWine?.vintage ?: "") }
     var comment by remember(initialWine) { mutableStateOf(initialWine?.comment ?: "") }
     var rating by remember(initialWine) { mutableStateOf(initialWine?.rating ?: 0f) }
+    var type by remember(initialWine) { mutableStateOf(initialWine?.type ?: WineType.RED) }
 
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) photoUri = uri
@@ -73,7 +77,12 @@ fun AddEditScreen(
         }
     }
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
+    Column(
+            Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
         TopAppBar(title = { Text(if (initialWine == null) "Ajouter une bouteille" else "Modifier la bouteille") })
         Spacer(Modifier.height(12.dp))
         // Direct actions: fewer taps, better UX
@@ -118,10 +127,29 @@ fun AddEditScreen(
             OutlinedTextField(value = vintage, onValueChange = { vintage = it }, label = { Text("Millésime") }, modifier = Modifier.weight(1f))
         }
         Spacer(Modifier.height(8.dp))
-        Text("Note")
-        StarRating(rating = rating, onRatingChange = { rating = it })
+        Text("Type de vin")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            androidx.compose.material3.FilterChip(
+                selected = type == WineType.RED,
+                onClick = { type = WineType.RED },
+                label = { Text("Rouge") }
+            )
+            androidx.compose.material3.FilterChip(
+                selected = type == WineType.WHITE,
+                onClick = { type = WineType.WHITE },
+                label = { Text("Blanc") }
+            )
+            androidx.compose.material3.FilterChip(
+                selected = type == WineType.ROSE,
+                onClick = { type = WineType.ROSE },
+                label = { Text("Rosé") }
+            )
+        }
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(value = comment, onValueChange = { comment = it }, label = { Text("Commentaire") }, modifier = Modifier.fillMaxWidth())
+        Spacer(Modifier.height(8.dp))
+        Text("Note")
+        StarRating(rating = rating, onRatingChange = { rating = it })
         Spacer(Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             Button(onClick = onCancel, modifier = Modifier.weight(1f)) { Text("Annuler") }
@@ -133,6 +161,7 @@ fun AddEditScreen(
                         vintage = vintage.ifBlank { null } ,
                         comment = comment.ifBlank { null },
                         rating = if (rating <= 0f) null else rating,
+                        type = type,
                         photoUri = photoUri?.toString(),
                         row = initialWine?.row ?: initialRow,
                         col = initialWine?.col ?: initialCol,

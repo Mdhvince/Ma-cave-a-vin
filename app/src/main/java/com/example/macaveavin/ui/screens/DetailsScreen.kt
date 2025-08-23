@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.macaveavin.data.Wine
+import com.example.macaveavin.data.WineType
 import com.example.macaveavin.ui.StarRating
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,6 +85,17 @@ fun DetailsScreen(
                 if (!wine.vintage.isNullOrBlank()) {
                     Spacer(Modifier.height(4.dp))
                     Text("Millésime : ${wine.vintage}")
+                }
+                run {
+                    val typeLabel = when (wine.type) {
+                        WineType.RED -> "Rouge"
+                        WineType.WHITE -> "Blanc"
+                        WineType.ROSE -> "Rosé"
+                        WineType.SPARKLING -> "Pétillant"
+                        WineType.OTHER -> "Autre"
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text("Type : $typeLabel")
                 }
                 if (!wine.comment.isNullOrBlank()) {
                     Spacer(Modifier.height(4.dp))

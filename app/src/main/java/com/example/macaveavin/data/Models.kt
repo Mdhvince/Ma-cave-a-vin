@@ -2,6 +2,8 @@ package com.example.macaveavin.data
 
 import java.util.UUID
 
+enum class WineType { RED, WHITE, ROSE, SPARKLING, OTHER }
+
 // Simplified model: rectangular grid with optional sparse enabled cells.
 // When enabledCells is null, the entire rows x cols grid is considered enabled.
 data class CellarConfig(
@@ -17,6 +19,7 @@ data class Wine(
     val vintage: String? = null,
     val comment: String? = null,
     val rating: Float? = null,
+    val type: WineType = WineType.RED,
     val photoUri: String? = null,
     val row: Int,
     val col: Int,
