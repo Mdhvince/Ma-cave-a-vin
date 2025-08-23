@@ -10,12 +10,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -82,7 +82,7 @@ fun App() {
                         val items = listOf(
                             BottomNavItem("home", "Accueil", Icons.Outlined.Home, Icons.Filled.Home),
                             BottomNavItem("quickAdd", "Ajouter", Icons.Outlined.PhotoCamera, Icons.Filled.PhotoCamera),
-                            BottomNavItem("cellar", "Cave", Icons.Outlined.FavoriteBorder, Icons.Filled.Favorite)
+                            BottomNavItem("cellar", "Cave", Icons.Outlined.Storefront, Icons.Filled.Storefront)
                         )
                         val current = backStack?.destination
                         FloatingBottomBar(

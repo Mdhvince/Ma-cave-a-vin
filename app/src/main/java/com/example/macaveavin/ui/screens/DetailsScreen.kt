@@ -1,13 +1,18 @@
 package com.example.macaveavin.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -52,61 +57,167 @@ fun DetailsScreen(
             title = { Text("Fiche du vin") },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Filled.ArrowBack, contentDescription = "Retour") } }
         )
-        Spacer(Modifier.height(12.dp))
-        Card(elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), modifier = Modifier.fillMaxWidth().animateContentSize()) {
-            Column(Modifier.padding(12.dp)) {
-                if (wine.photoUri != null) {
-                    SubcomposeAsyncImage(
-                        model = wine.photoUri,
-                        contentDescription = "Photo de l'étiquette",
-                        modifier = Modifier.fillMaxWidth().height(220.dp),
-                        contentScale = ContentScale.Crop,
-                        loading = {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(220.dp)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                            )
-                        },
-                        error = {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(220.dp)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                            )
-                        },
-                        success = { SubcomposeAsyncImageContent() }
-                    )
-                    Spacer(Modifier.height(12.dp))
-                }
-                Text(text = if (wine.name.isNotBlank()) wine.name else "Vin", style = MaterialTheme.typography.headlineSmall)
-                if (!wine.vintage.isNullOrBlank()) {
-                    Spacer(Modifier.height(4.dp))
-                    Text("Millésime : ${wine.vintage}")
-                }
-                run {
-                    val typeLabel = when (wine.type) {
-                        WineType.RED -> "Rouge"
-                        WineType.WHITE -> "Blanc"
-                        WineType.ROSE -> "Rosé"
-                        WineType.SPARKLING -> "Pétillant"
-                        WineType.OTHER -> "Autre"
+        Spacer(Modifier.height(16.dp))
+        
+        // Main ID Card
+        Card(
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(Modifier.padding(20.dp)) {
+                // ID Card Header - Photo + Main Info
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Photo Section
+                    if (wine.photoUri != null) {
+                        SubcomposeAsyncImage(
+                            model = wine.photoUri,
+                            contentDescription = "Photo de l'étiquette",
+                            modifier = Modifier
+                                .size(120.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                    RoundedCornerShape(8.dp)
+                                ),
+                            contentScale = ContentScale.Crop,
+                            loading = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.surfaceVariant,
+                                            RoundedCornerShape(8.dp)
+                                        )
+                                )
+                            },
+                            error = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.surfaceVariant,
+                                            RoundedCornerShape(8.dp)
+                                        )
+                                )
+                            },
+                            success = { SubcomposeAsyncImageContent() }
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(120.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                    RoundedCornerShape(8.dp)
+                                )
+                        )
                     }
-                    Spacer(Modifier.height(4.dp))
-                    Text("Type : $typeLabel")
+                    
+                    // Main Info Section
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = if (wine.name.isNotBlank()) wine.name else "Vin",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            if (!wine.vintage.isNullOrBlank()) {
+                                Column {
+                                    Text(
+                                        "Millésime",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        wine.vintage,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
+                            
+                            Column {
+                                Text(
+                                    "Type",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                val typeLabel = when (wine.type) {
+                                    WineType.RED -> "Rouge"
+                                    WineType.WHITE -> "Blanc"
+                                    WineType.ROSE -> "Rosé"
+                                    WineType.SPARKLING -> "Pétillant"
+                                    WineType.OTHER -> "Autre"
+                                }
+                                Text(
+                                    typeLabel,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                        
+                        // Rating
+                        if (wine.rating != null) {
+                            Column {
+                                Text(
+                                    "Note",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                StarRating(rating = wine.rating ?: 0f, onRatingChange = null)
+                            }
+                        }
+                    }
                 }
-                if (!wine.comment.isNullOrBlank()) {
-                    Spacer(Modifier.height(4.dp))
-                    Text("Commentaire : ${wine.comment}")
+            }
+        }
+        
+        Spacer(Modifier.height(16.dp))
+        
+        // Additional Details Cards
+        if (!wine.comment.isNullOrBlank()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(
+                        "Commentaire",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        wine.comment,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
-                if (wine.rating != null) {
-                    Spacer(Modifier.height(4.dp))
-                    StarRating(rating = wine.rating ?: 0f, onRatingChange = null)
-                }
-                Spacer(Modifier.height(8.dp))
-                Text("Emplacement : Rangée ${wine.row + 1}, Colonne ${wine.col + 1}")
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+        
+        // Location Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                Text(
+                    "Emplacement",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    "Rangée ${wine.row + 1}, Colonne ${wine.col + 1}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
         Spacer(Modifier.height(16.dp))

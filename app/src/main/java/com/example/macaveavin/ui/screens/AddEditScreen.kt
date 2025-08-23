@@ -25,7 +25,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.FileProvider
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -116,117 +119,215 @@ fun AddEditScreen(
                 .verticalScroll(rememberScrollState())
         ) {
         TopAppBar(title = { Text(if (initialWine == null) "Ajouter une bouteille" else "Modifier la bouteille") })
-        Spacer(Modifier.height(12.dp))
-        // Direct actions: fewer taps, better UX
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            Button(onClick = {
-                photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            }, modifier = Modifier.weight(1f)) {
-                Icon(Icons.Filled.PhotoLibrary, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(id = com.example.macaveavin.R.string.gallery))
-            }
-            Button(onClick = {
-                val uri = createImageUri(context)
-                cameraImageUri = uri
-                takePicture.launch(uri)
-            }, modifier = Modifier.weight(1f)) {
-                Icon(Icons.Filled.PhotoCamera, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(id = com.example.macaveavin.R.string.camera))
-            }
-        }
-        Spacer(Modifier.height(12.dp))
-        if (photoUri != null) {
-            Image(
-                painter = rememberAsyncImagePainter(photoUri),
-                contentDescription = "Photo de l'étiquette",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp)
-                    .clickable {
-                        photoPicker.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    },
-                contentScale = ContentScale.Crop
-            )
-        }
-        Spacer(Modifier.height(12.dp))
-        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nom du vin") }, modifier = Modifier.fillMaxWidth())
-        Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(value = vintage, onValueChange = { vintage = it }, label = { Text("Millésime") }, modifier = Modifier.weight(1f))
-        }
-        Spacer(Modifier.height(8.dp))
-        Text("Type de vin")
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            androidx.compose.material3.FilterChip(
-                selected = type == WineType.RED,
-                onClick = { type = WineType.RED },
-                label = { Text("Rouge") }
-            )
-            androidx.compose.material3.FilterChip(
-                selected = type == WineType.WHITE,
-                onClick = { type = WineType.WHITE },
-                label = { Text("Blanc") }
-            )
-            androidx.compose.material3.FilterChip(
-                selected = type == WineType.ROSE,
-                onClick = { type = WineType.ROSE },
-                label = { Text("Rosé") }
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-        if (hasSelection) {
-            Text("Cave et emplacement")
-            Spacer(Modifier.height(8.dp))
-            var cellarMenuExpanded by remember { mutableStateOf(false) }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                Button(onClick = { cellarMenuExpanded = true }) {
-                    Text(currentConfig?.name ?: "")
+        
+        Spacer(Modifier.height(16.dp))
+        
+        // Photo Section Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    "Photo de l'étiquette",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp), 
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(onClick = {
+                        photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    }, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Filled.PhotoLibrary, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(id = com.example.macaveavin.R.string.gallery))
+                    }
+                    Button(onClick = {
+                        val uri = createImageUri(context)
+                        cameraImageUri = uri
+                        takePicture.launch(uri)
+                    }, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Filled.PhotoCamera, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(id = com.example.macaveavin.R.string.camera))
+                    }
                 }
-                DropdownMenu(expanded = cellarMenuExpanded, onDismissRequest = { cellarMenuExpanded = false }) {
-                    allCellars!!.forEachIndexed { idx, cfg ->
-                        DropdownMenuItem(text = { Text(cfg.name) }, onClick = {
-                            selectedCellarIndex = idx
-                            onSelectCellar?.invoke(idx)
-                            clampPosition()
-                            cellarMenuExpanded = false
-                        })
+                
+                if (photoUri != null) {
+                    Spacer(Modifier.height(12.dp))
+                    Image(
+                        painter = rememberAsyncImagePainter(photoUri),
+                        contentDescription = "Photo de l'étiquette",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .clickable {
+                                photoPicker.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            },
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+        }
+        
+        Spacer(Modifier.height(16.dp))
+        
+        // Wine Details Card
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    "Détails du vin",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp), 
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = name, 
+                        onValueChange = { name = it }, 
+                        label = { Text("Nom du vin") }, 
+                        modifier = Modifier.weight(2f)
+                    )
+                    OutlinedTextField(
+                        value = vintage, 
+                        onValueChange = { vintage = it }, 
+                        label = { Text("Millésime") }, 
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                
+                Spacer(Modifier.height(12.dp))
+                Text("Type de vin", style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    androidx.compose.material3.FilterChip(
+                        selected = type == WineType.RED,
+                        onClick = { type = WineType.RED },
+                        label = { Text("Rouge") }
+                    )
+                    androidx.compose.material3.FilterChip(
+                        selected = type == WineType.WHITE,
+                        onClick = { type = WineType.WHITE },
+                        label = { Text("Blanc") }
+                    )
+                    androidx.compose.material3.FilterChip(
+                        selected = type == WineType.ROSE,
+                        onClick = { type = WineType.ROSE },
+                        label = { Text("Rosé") }
+                    )
+                }
+            }
+        }
+        
+        Spacer(Modifier.height(16.dp))
+        
+        // Location Card (if applicable)
+        if (hasSelection) {
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        "Cave et emplacement",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    
+                    var cellarMenuExpanded by remember { mutableStateOf(false) }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        Button(onClick = { cellarMenuExpanded = true }) {
+                            Text(currentConfig?.name ?: "")
+                        }
+                        DropdownMenu(expanded = cellarMenuExpanded, onDismissRequest = { cellarMenuExpanded = false }) {
+                            allCellars!!.forEachIndexed { idx, cfg ->
+                                DropdownMenuItem(text = { Text(cfg.name) }, onClick = {
+                                    selectedCellarIndex = idx
+                                    onSelectCellar?.invoke(idx)
+                                    clampPosition()
+                                    cellarMenuExpanded = false
+                                })
+                            }
+                        }
+                    }
+                    
+                    Spacer(Modifier.height(12.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = (selRow + 1).toString(),
+                            onValueChange = { v ->
+                                val n = v.filter { it.isDigit() }.toIntOrNull()
+                                if (n != null) { selRow = (n - 1).coerceAtLeast(0); clampPosition() }
+                            },
+                            label = { Text("Ligne (1-${currentConfig?.rows ?: 1})") },
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = (selCol + 1).toString(),
+                            onValueChange = { v ->
+                                val n = v.filter { it.isDigit() }.toIntOrNull()
+                                if (n != null) { selCol = (n - 1).coerceAtLeast(0); clampPosition() }
+                            },
+                            label = { Text("Colonne (1-${currentConfig?.cols ?: 1})") },
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
             }
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = (selRow + 1).toString(),
-                    onValueChange = { v ->
-                        val n = v.filter { it.isDigit() }.toIntOrNull()
-                        if (n != null) { selRow = (n - 1).coerceAtLeast(0); clampPosition() }
-                    },
-                    label = { Text("Ligne (1-${currentConfig?.rows ?: 1})") },
-                    modifier = Modifier.weight(1f)
+            
+            Spacer(Modifier.height(16.dp))
+        }
+        
+        // Notes & Rating Card
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    "Notes et évaluation",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
+                
                 OutlinedTextField(
-                    value = (selCol + 1).toString(),
-                    onValueChange = { v ->
-                        val n = v.filter { it.isDigit() }.toIntOrNull()
-                        if (n != null) { selCol = (n - 1).coerceAtLeast(0); clampPosition() }
-                    },
-                    label = { Text("Colonne (1-${currentConfig?.cols ?: 1})") },
-                    modifier = Modifier.weight(1f)
+                    value = comment, 
+                    onValueChange = { comment = it }, 
+                    label = { Text("Commentaire") }, 
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2
                 )
+                
+                Spacer(Modifier.height(12.dp))
+                Text("Note", style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(8.dp))
+                StarRating(rating = rating, onRatingChange = { rating = it })
             }
         }
-        Spacer(Modifier.height(8.dp))
-        OutlinedTextField(value = comment, onValueChange = { comment = it }, label = { Text("Commentaire") }, modifier = Modifier.fillMaxWidth())
-        Spacer(Modifier.height(8.dp))
-        Text("Note")
-        StarRating(rating = rating, onRatingChange = { rating = it })
-        Spacer(Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            Button(onClick = onCancel, modifier = Modifier.weight(1f)) { Text("Annuler") }
+        
+        Spacer(Modifier.height(24.dp))
+        
+        // Action Buttons
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = onCancel, modifier = Modifier.weight(1f)) { 
+                Text("Annuler") 
+            }
             Button(
                 onClick = {
                     val wine = Wine(
@@ -246,6 +347,8 @@ fun AddEditScreen(
                 modifier = Modifier.weight(1f)
             ) { Text("Enregistrer") }
         }
+        
+        Spacer(Modifier.height(16.dp))
     }
 }
 
