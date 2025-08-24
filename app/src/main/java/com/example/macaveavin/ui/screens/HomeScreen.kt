@@ -185,6 +185,8 @@ fun HomeScreen(
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 val count = wineCounts.getOrNull(index) ?: 0
+                                val totalSlots = cfg.enabledCells?.size ?: (cfg.rows * cfg.cols)
+                                val pct = if (totalSlots > 0) ((count * 100f) / totalSlots).roundToInt().coerceIn(0, 100) else 0
                                 Text(
                                     text = cfg.name,
                                     style = MaterialTheme.typography.titleMedium,
@@ -209,6 +211,18 @@ fun HomeScreen(
                                     Spacer(Modifier.width(4.dp))
                                     Text(
                                         text = "$count",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(
+                                        text = "·",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(
+                                        text = "$pct%",
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
