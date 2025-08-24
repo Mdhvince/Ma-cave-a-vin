@@ -17,6 +17,8 @@ data class Wine(
     val id: String = UUID.randomUUID().toString(),
     val name: String,
     val vintage: String? = null,
+    val country: String? = null,
+    val region: String? = null,
     val comment: String? = null,
     val rating: Float? = null,
     val type: WineType = WineType.RED,

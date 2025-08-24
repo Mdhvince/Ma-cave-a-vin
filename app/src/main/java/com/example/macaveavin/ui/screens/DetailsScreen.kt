@@ -1,6 +1,7 @@
 package com.example.macaveavin.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
@@ -70,10 +73,20 @@ fun DetailsScreen(
         Spacer(Modifier.height(16.dp))
         
         // Main ID Card
+        val typeAccentColor = when (wine.type) {
+            WineType.RED -> Color(0xFFB71C1C)
+            WineType.WHITE -> Color(0xFFFDD835)
+            WineType.ROSE -> Color(0xFFF06292)
+            WineType.SPARKLING -> Color(0xFF80DEEA)
+            WineType.OTHER -> MaterialTheme.colorScheme.primary
+        }
+
         Card(
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, typeAccentColor.copy(alpha = 0.45f))
         ) {
             Column(Modifier.padding(20.dp)) {
                 // ID Card Header - Photo + Main Info
@@ -88,29 +101,20 @@ fun DetailsScreen(
                             contentDescription = "Photo de l'étiquette",
                             modifier = Modifier
                                 .size(120.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                    RoundedCornerShape(8.dp)
-                                ),
+                                .clip(RoundedCornerShape(8.dp)),
                             contentScale = ContentScale.Crop,
                             loading = {
                                 Box(
                                     modifier = Modifier
                                         .size(120.dp)
-                                        .background(
-                                            MaterialTheme.colorScheme.surfaceVariant,
-                                            RoundedCornerShape(8.dp)
-                                        )
+                                        .clip(RoundedCornerShape(8.dp))
                                 )
                             },
                             error = {
                                 Box(
                                     modifier = Modifier
                                         .size(120.dp)
-                                        .background(
-                                            MaterialTheme.colorScheme.surfaceVariant,
-                                            RoundedCornerShape(8.dp)
-                                        )
+                                        .clip(RoundedCornerShape(8.dp))
                                 )
                             },
                             success = { SubcomposeAsyncImageContent() }
@@ -119,10 +123,7 @@ fun DetailsScreen(
                         Box(
                             modifier = Modifier
                                 .size(120.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                    RoundedCornerShape(8.dp)
-                                )
+                                .clip(RoundedCornerShape(8.dp))
                         )
                     }
                     
@@ -154,23 +155,33 @@ fun DetailsScreen(
                                 }
                             }
                             
-                            Column {
-                                Text(
-                                    "Type",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                val typeLabel = when (wine.type) {
-                                    WineType.RED -> "Rouge"
-                                    WineType.WHITE -> "Blanc"
-                                    WineType.ROSE -> "Rosé"
-                                    WineType.SPARKLING -> "Pétillant"
-                                    WineType.OTHER -> "Autre"
+
+                            if (!wine.country.isNullOrBlank()) {
+                                Column {
+                                    Text(
+                                        "Pays",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        wine.country,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
                                 }
-                                Text(
-                                    typeLabel,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
+                            }
+
+                            if (!wine.region.isNullOrBlank()) {
+                                Column {
+                                    Text(
+                                        "Région",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        wine.region,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
                             }
                         }
                         

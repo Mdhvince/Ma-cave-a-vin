@@ -56,6 +56,8 @@ object Repository {
                         id = w.optString("id"),
                         name = w.optString("name"),
                         vintage = w.optString("vintage").takeIf { it.isNotBlank() },
+                        country = w.optString("country").takeIf { it.isNotBlank() },
+                        region = w.optString("region").takeIf { it.isNotBlank() },
                         comment = w.optString("comment").takeIf { it.isNotBlank() },
                         rating = if (w.has("rating") && !w.isNull("rating")) w.getDouble("rating").toFloat() else null,
                         type = type,
@@ -153,6 +155,8 @@ object Repository {
                     put("id", w.id)
                     put("name", w.name)
                     if (w.vintage != null) put("vintage", w.vintage)
+                    if (w.country != null) put("country", w.country)
+                    if (w.region != null) put("region", w.region)
                     if (w.comment != null) put("comment", w.comment)
                     if (w.rating != null) put("rating", w.rating)
                     put("type", w.type.name)

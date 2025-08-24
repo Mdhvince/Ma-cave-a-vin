@@ -70,6 +70,8 @@ fun AddEditScreen(
     var photoUri by remember(initialWine) { mutableStateOf(initialWine?.photoUri?.let(Uri::parse)) }
     var name by remember(initialWine) { mutableStateOf(initialWine?.name ?: "") }
     var vintage by remember(initialWine) { mutableStateOf(initialWine?.vintage ?: "") }
+    var country by remember(initialWine) { mutableStateOf(initialWine?.country ?: "") }
+    var region by remember(initialWine) { mutableStateOf(initialWine?.region ?: "") }
     var comment by remember(initialWine) { mutableStateOf(initialWine?.comment ?: "") }
     var rating by remember(initialWine) { mutableStateOf(initialWine?.rating ?: 0f) }
     var type by remember(initialWine) { mutableStateOf(initialWine?.type ?: WineType.RED) }
@@ -209,6 +211,25 @@ fun AddEditScreen(
                         modifier = Modifier.weight(1f)
                     )
                 }
+
+                Spacer(Modifier.height(12.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = country,
+                        onValueChange = { country = it },
+                        label = { Text("Pays") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = region,
+                        onValueChange = { region = it },
+                        label = { Text("Région") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
                 
                 Spacer(Modifier.height(12.dp))
                 Text("Type de vin", style = MaterialTheme.typography.bodyMedium)
@@ -334,6 +355,8 @@ fun AddEditScreen(
                         id = initialWine?.id ?: Wine(name = name.ifBlank { "Bouteille" }, row = 0, col = 0).id,
                         name = name.ifBlank { "Bouteille" },
                         vintage = vintage.ifBlank { null } ,
+                        country = country.ifBlank { null },
+                        region = region.ifBlank { null },
                         comment = comment.ifBlank { null },
                         rating = if (rating <= 0f) null else rating,
                         type = type,
