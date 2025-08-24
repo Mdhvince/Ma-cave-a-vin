@@ -26,3 +26,7 @@ obj/
 # Keystore files (do not commit signing keys)
 *.keystore
 *.jks
+
+app/release/
+**/output-metadata.json
+
