@@ -185,7 +185,34 @@ fun HomeScreen(
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 val count = wineCounts.getOrNull(index) ?: 0
-                                Text(text = "${cfg.name} ($count)", style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    text = cfg.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    maxLines = 1
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .background(
+                                            color = MaterialTheme.colorScheme.surfaceVariant,
+                                            shape = androidx.compose.foundation.shape.RoundedCornerShape(50)
+                                        )
+                                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Filled.WineBar,
+                                        contentDescription = "$count bouteille${if (count > 1) "s" else ""}",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        text = "$count",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
