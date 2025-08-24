@@ -269,8 +269,8 @@ fun HomeScreen(
             }
 
             if (!isEmpty) {
-                // Add new cellar primary action: distinct filled tonal button
-                androidx.compose.material3.FilledTonalButton(
+                // Add new cellar primary action: outlined button (border only, no fill)
+                androidx.compose.material3.OutlinedButton(
                     onClick = onAddCellar,
                     modifier = Modifier
                         .fillMaxWidth()

@@ -118,6 +118,8 @@ fun CellarScreen(
             val hSpacingPx = with(density) { hSpacing.toPx() }
             val vSpacingPx = with(density) { vSpacing.toPx() }
 
+            val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+
             val rowsCount = config.rows
             val maxCols = config.cols
 
@@ -132,6 +134,7 @@ fun CellarScreen(
                     .pointerInput(config, wines, enabledSet) {
                         detectDragGesturesAfterLongPress(
                             onDragStart = { offset ->
+                                haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                 val hit = pointToCell(
                                     offset.x,
                                     offset.y,
